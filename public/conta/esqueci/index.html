@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="robots" content="noindex">
+    <title>Esqueci minha senha | Nelsi</title>
+    <meta name="theme-color" content="#8E2445">
+    <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body class="conta-pagina">
+    <header class="topo">
+        <div class="caixa topo__linha">
+            <a href="../../" class="marca" aria-label="Nelsi, página inicial"><span class="marca__nome">Nelsi</span><span class="marca__sub">Painel da loja</span></a>
+            <a href="../../" class="link-seta">Voltar ao site</a>
+        </div>
+    </header>
+
+    <main class="caixa conta">
+        <div class="conta__cartao">
+            <p class="rotulo"><span class="rotulo__linha"></span>Painel</p>
+            <h1>Esqueci minha senha</h1>
+            <p class="conta__email">Informe o e-mail da sua conta. Vamos mandar um link para você criar uma senha nova.</p>
+            <form id="form" class="conta__form" novalidate>
+                <label class="campo">E-mail
+                    <input name="email" type="email" autocomplete="email" required maxlength="200">
+                </label>
+                <p class="conta__erro" id="erro" role="alert" hidden></p>
+                <button type="submit" class="botao">Mandar o link</button>
+            </form>
+            <div class="conta__ok" id="ok" role="status" hidden>
+                <p><strong>Pronto!</strong> Se existir uma conta com esse e-mail, o link chega em alguns minutos. Confira também a caixa de spam.</p>
+                <p>O link vale por 1 hora.</p>
+            </div>
+            <p class="conta__troca">Lembrou? <a href="../entrar/">Entrar</a></p>
+        </div>
+    </main>
+
+    <script src="../../conta/conta.js"></script>
+    <script>formularioEsqueci();</script>
+</body>
+</html>

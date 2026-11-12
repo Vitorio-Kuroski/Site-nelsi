@@ -1,0 +1,18 @@
+// Configuração do Cloudflare Workers.
+// public/ tem os arquivos fixos (estilos, scripts, login e painel); o src/worker.js monta as páginas da loja
+// a partir do banco D1 (produtos, preços e dados da loja editados no painel).
+{
+  "name": "site-nelsi",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/", "/index.html", "/api/*", "/produto/*", "/pedir/*", "/imagens/*", "/privacidade", "/privacidade/", "/sitemap.xml", "/robots.txt"]
+  },
+  // Banco de dados. Sem "database_id": o Cloudflare cria o banco sozinho na primeira publicação,
+  // e o Worker cria as tabelas na primeira visita.
+  "d1_databases": [{ "binding": "DB", "database_name": "site-nelsi" }],
+  "workers_dev": true
+}

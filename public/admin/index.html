@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="robots" content="noindex">
+    <title>Painel | Nelsi</title>
+    <meta name="theme-color" content="#6E1734">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body class="adm-corpo">
+    <!-- Menu lateral (no celular, abre pelo botão ☰) -->
+    <aside class="adm-menu" id="menu" aria-label="Menu do painel">
+        <div class="adm-menu__marca">
+            <a href="../">Nelsi</a>
+            <span>Painel da loja</span>
+        </div>
+        <nav class="adm-menu__nav">
+            <p class="adm-menu__secao">Visão geral</p>
+            <a href="#/" data-pagina="painel">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/></svg>Painel
+            </a>
+            <p class="adm-menu__secao">Loja</p>
+            <a href="#/produtos" data-pagina="produtos">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/></svg>Produtos
+            </a>
+            <a href="#/produtos/novo" data-pagina="novo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo produto
+            </a>
+            <p class="adm-menu__secao">Conta</p>
+            <a href="#/loja" data-pagina="loja">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Dados da loja
+            </a>
+        </nav>
+        <div class="adm-menu__usuario">
+            <span class="adm-avatar" id="menu-avatar">··</span>
+            <div><strong id="menu-nome">…</strong><small id="menu-email"></small></div>
+            <button type="button" id="sair" title="Sair" aria-label="Sair">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></svg>
+            </button>
+        </div>
+    </aside>
+    <div class="adm-veu" id="veu" hidden></div>
+
+    <div class="adm-area">
+        <header class="adm-barra">
+            <button type="button" class="adm-barra__menu" id="abrir-menu" aria-label="Abrir o menu" aria-controls="menu" aria-expanded="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
+            <p class="adm-barra__titulo">Painel</p>
+            <a class="adm-barra__site" href="../" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg><span>Ver site</span>
+            </a>
+            <span class="adm-barra__usuario">
+                <span class="adm-avatar adm-avatar--claro" id="barra-avatar">··</span>
+                <span class="adm-barra__nome" id="barra-nome"></span>
+            </span>
+        </header>
+
+        <main class="adm-conteudo" id="conteudo" aria-live="polite">
+            <p class="adm-carregando">Carregando…</p>
+        </main>
+    </div>
+
+    <main class="caixa conta" id="negado" hidden>
+        <div class="conta__cartao">
+            <p class="rotulo">Administração</p>
+            <h1>Acesso restrito</h1>
+            <p class="conta__email">Esta página é só para a administradora da loja.</p>
+            <p class="conta__troca"><a href="../">Voltar ao site</a></p>
+        </div>
+    </main>
+
+    <script src="admin.js" defer></script>
+</body>
+</html>

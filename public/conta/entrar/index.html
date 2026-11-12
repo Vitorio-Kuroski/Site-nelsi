@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="robots" content="noindex">
+    <title>Entrar | Nelsi</title>
+    <meta name="theme-color" content="#8E2445">
+    <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body class="conta-pagina">
+    <header class="topo">
+        <div class="caixa topo__linha">
+            <a href="../../" class="marca" aria-label="Nelsi, página inicial"><span class="marca__nome">Nelsi</span><span class="marca__sub">Painel da loja</span></a>
+            <a href="../../" class="link-seta">Voltar ao site</a>
+        </div>
+    </header>
+
+    <main class="caixa conta">
+        <div class="conta__cartao">
+            <p class="rotulo"><span class="rotulo__linha"></span>Painel</p>
+            <h1>Entrar</h1>
+            <form id="form" class="conta__form" novalidate>
+                <label class="campo">E-mail
+                    <input name="email" type="email" autocomplete="email" required maxlength="200">
+                </label>
+                <label class="campo">Senha
+                    <input name="senha" type="password" autocomplete="current-password" required maxlength="200">
+                </label>
+                <p class="conta__esqueci"><a href="../esqueci/">Esqueci minha senha</a></p>
+                <p class="conta__erro" id="erro" role="alert" hidden></p>
+                <button type="submit" class="botao">Entrar</button>
+            </form>
+            <p class="conta__troca">Primeiro acesso ao painel? <a href="../cadastro/">Criar senha</a></p>
+        </div>
+    </main>
+
+    <script src="../../conta/conta.js"></script>
+    <script>formularioConta("/api/conta/entrar");</script>
+</body>
+</html>
