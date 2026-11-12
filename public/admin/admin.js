@@ -462,8 +462,11 @@ async function paginaLote() {
 
 // ---------- Aparência ----------
 
-const FUNDOS_TEMA = { vinho: "#FBF6F1", rosa: "#FFF7FA", lilas: "#FAF7FD", oliva: "#FAF8F1", preto: "#FBF8F3", marinho: "#F7F9FC" };
-const FAMILIAS_FONTE = { elegante: "'Playfair Display', Georgia, serif", moderna: "'Poppins', system-ui, sans-serif", delicada: "'Dancing Script', cursive" };
+const FUNDOS_TEMA = { vinho: "#FBF6F1", rosa: "#FFF7FA", lilas: "#FAF7FD", oliva: "#FAF8F1", preto: "#FBF8F3", marinho: "#F7F9FC",
+    coral: "#FFF8F5", turquesa: "#F6FBFA", terracota: "#FCF7F2", nude: "#FCF8F6", vermelho: "#FFF8F7", ceu: "#F7FAFD" };
+const FAMILIAS_FONTE = { elegante: "'Playfair Display', Georgia, serif", moderna: "'Poppins', system-ui, sans-serif", delicada: "'Dancing Script', cursive",
+    classica: "'Cormorant Garamond', Georgia, serif", arredondada: "'Quicksand', system-ui, sans-serif", marcante: "'Abril Fatface', Georgia, serif" };
+const ROTULOS_OPCOES = { foto_topo: "Foto do topo", foto_produto: "Fotos dos produtos", colunas_celular: "Produtos por linha no celular" };
 
 async function paginaAparencia(mensagem = "", tipo = "ok") {
     titulo.textContent = "Aparência";
@@ -485,6 +488,9 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
                     <span class="adm-escolha__amostra" style="font-family:${FAMILIAS_FONTE[k]}">${esc(a.nome)}</span>
                     <span>${esc(nome)}</span></label>`).join("")}
             </fieldset>
+            ${Object.entries(a.opcoes).map(([campo, opcoes]) => `<fieldset class="adm-escolhas adm-escolhas--texto"><legend>${ROTULOS_OPCOES[campo]}</legend>
+                ${Object.entries(opcoes).map(([k, nome]) => `<label class="adm-escolha"><input type="radio" name="${campo}" value="${k}" ${a[campo] === k ? "checked" : ""}><span>${esc(nome)}</span></label>`).join("")}
+            </fieldset>`).join("")}
             <div class="campo">Logo <span class="adm-form__dica">sem logo, o topo mostra o nome da loja escrito; use imagem com fundo transparente ou branco</span>
                 <div class="adm-capa">
                     <img id="logo-previa" class="adm-logo-loja" alt="" ${a.logo ? `src="${esc(a.logo)}"` : "hidden"}>
@@ -553,12 +559,13 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
         e.preventDefault();
         salvar({
             tema: form.tema.value, fonte: form.fonte.value, logo,
+            foto_topo: form.foto_topo.value, foto_produto: form.foto_produto.value, colunas_celular: form.colunas_celular.value,
             banner_texto: form.banner_texto.value, banner_ate: form.banner_ate.value,
             mostrar_destaques: form.mostrar_destaques.checked, mostrar_como_comprar: form.mostrar_como_comprar.checked, mostrar_pagamento: form.mostrar_pagamento.checked,
         }, "Salvo. Abra o site para ver como ficou.");
     });
     document.getElementById("original").addEventListener("click", () => {
-        if (!confirm("Voltar a aparência ao original? Cores, letras, logo, faixa de aviso e seções voltam ao padrão. Produtos e textos da loja não mudam.")) return;
+        if (!confirm("Voltar a aparência ao original? Cores, letras, fotos, logo, faixa de aviso e seções voltam ao padrão. Produtos e textos da loja não mudam.")) return;
         salvar({ original: true }, "Pronto: a aparência voltou ao original.");
     });
 }

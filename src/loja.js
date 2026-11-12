@@ -91,6 +91,14 @@ export const APARENCIA_PADRAO = {
     mostrar_destaques: "1",
     mostrar_como_comprar: "1",
     mostrar_pagamento: "1",
+    foto_topo: "redonda",
+    foto_produto: "quadrada",
+    colunas_celular: "2",
+};
+export const OPCOES_APARENCIA = {
+    foto_topo: { redonda: "Redonda", quadrada: "Quadrada", sem: "Sem foto" },
+    foto_produto: { quadrada: "Quadrada", vertical: "Vertical (boa para perfume)", redonda: "Cantos bem arredondados" },
+    colunas_celular: { "2": "2 por linha", "1": "1 por linha, maior" },
 };
 export const TEMAS = {
     vinho: { nome: "Vinho", cor: "#8E2445" },
@@ -99,11 +107,20 @@ export const TEMAS = {
     oliva: { nome: "Verde-oliva", cor: "#5E6B2E" },
     preto: { nome: "Preto e dourado", cor: "#1F1B1A" },
     marinho: { nome: "Azul-marinho", cor: "#1F3A68" },
+    coral: { nome: "Coral", cor: "#C8463C" },
+    turquesa: { nome: "Turquesa", cor: "#12807A" },
+    terracota: { nome: "Terracota", cor: "#A8502E" },
+    nude: { nome: "Nude", cor: "#9C6B5E" },
+    vermelho: { nome: "Vermelho", cor: "#B3202E" },
+    ceu: { nome: "Azul-céu", cor: "#2E6FA8" },
 };
 export const FONTES = {
     elegante: { nome: "Elegante", url: "family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800" },
     moderna: { nome: "Moderna", url: "family=Poppins:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800" },
     delicada: { nome: "Delicada", url: "family=Dancing+Script:wght@600;700&family=Nunito+Sans:wght@400;600;700;800" },
+    classica: { nome: "Clássica", url: "family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800" },
+    arredondada: { nome: "Arredondada", url: "family=Quicksand:wght@600;700&family=Nunito+Sans:wght@400;600;700;800" },
+    marcante: { nome: "Marcante", url: "family=Abril+Fatface&family=Nunito+Sans:wght@400;600;700;800" },
 };
 
 export async function lerAjustes(db) {
@@ -111,6 +128,7 @@ export async function lerAjustes(db) {
     const a = { ...AJUSTES_PADRAO, ...APARENCIA_PADRAO, ...Object.fromEntries(results.map((r) => [r.chave, r.valor])) };
     if (!TEMAS[a.tema]) a.tema = APARENCIA_PADRAO.tema;
     if (!FONTES[a.fonte]) a.fonte = APARENCIA_PADRAO.fonte;
+    for (const [k, opcoes] of Object.entries(OPCOES_APARENCIA)) if (!(a[k] in opcoes)) a[k] = APARENCIA_PADRAO[k];
     return a;
 }
 
@@ -188,7 +206,7 @@ export function pagina(request, ajustes, { titulo, descricao, conteudo, status =
     <link rel="stylesheet" href="/style.css">
     <script src="/loja.js" defer></script>${extraHead}
 </head>
-<body data-tema="${ajustes.tema}" data-fonte="${ajustes.fonte}" data-zap="${zap ? "1" : ""}" data-moeda="${esc(ajustes.moeda)}">
+<body data-tema="${ajustes.tema}" data-fonte="${ajustes.fonte}" data-foto-topo="${ajustes.foto_topo}" data-foto-produto="${ajustes.foto_produto}" data-colunas="${ajustes.colunas_celular}" data-zap="${zap ? "1" : ""}" data-moeda="${esc(ajustes.moeda)}">
     <a class="pular" href="#conteudo">Pular para o conteúdo</a>${banner}
     <header class="topo">
         <div class="caixa topo__linha">
@@ -291,7 +309,7 @@ export async function paginaInicial(request, env) {
                         ${zap ? `<a class="botao botao--zap" href="${esc(linkZap(a, `Oi ${primeiroNome(a)}! Vim pelo site e queria uma ajuda.`))}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>Falar comigo</span></a>` : ""}
                     </div>
                 </div>
-                <div class="apresenta__foto">${foto}</div>
+                ${a.foto_topo === "sem" ? "" : `<div class="apresenta__foto">${foto}</div>`}
             </div>
         </section>
 

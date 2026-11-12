@@ -217,6 +217,12 @@ body[data-tema="lilas"] { --vinho: #6E4BA8; --vinho-escuro: #553885; --vinho-cla
 body[data-tema="oliva"] { --vinho: #5E6B2E; --vinho-escuro: #465122; --vinho-claro: #ECEFDC; --fundo: #FAF8F1; --fundo-2: #F0EEE0; --linha: #E2DFCB; --dourado: #957728; }
 body[data-tema="preto"] { --vinho: #1F1B1A; --vinho-escuro: #000; --vinho-claro: #EFE6D6; --fundo: #FBF8F3; --fundo-2: #F2ECE2; --linha: #E5DDCF; --dourado: #A27A2E; }
 body[data-tema="marinho"] { --vinho: #1F3A68; --vinho-escuro: #152A4F; --vinho-claro: #E2E9F5; --fundo: #F7F9FC; --fundo-2: #EAEFF7; --linha: #DCE3EE; --dourado: #9A7633; }
+body[data-tema="coral"] { --vinho: #C8463C; --vinho-escuro: #A3352D; --vinho-claro: #FCE5E1; --fundo: #FFF8F5; --fundo-2: #FBECE6; --linha: #F1DDD5; --dourado: #A8603A; }
+body[data-tema="turquesa"] { --vinho: #12807A; --vinho-escuro: #0C625D; --vinho-claro: #DDF2F0; --fundo: #F6FBFA; --fundo-2: #E7F3F1; --linha: #D5E8E5; --dourado: #957328; }
+body[data-tema="terracota"] { --vinho: #A8502E; --vinho-escuro: #843C20; --vinho-claro: #F6E4DA; --fundo: #FCF7F2; --fundo-2: #F3E8DE; --linha: #E9DACB; --dourado: #8A6A2E; }
+body[data-tema="nude"] { --vinho: #9C6B5E; --vinho-escuro: #7D5247; --vinho-claro: #F3E6E1; --fundo: #FCF8F6; --fundo-2: #F3EAE5; --linha: #EADDD6; --dourado: #9A744A; }
+body[data-tema="vermelho"] { --vinho: #B3202E; --vinho-escuro: #8C1622; --vinho-claro: #FAE1E3; --fundo: #FFF8F7; --fundo-2: #F8ECEB; --linha: #EFDADA; --dourado: #A07428; }
+body[data-tema="ceu"] { --vinho: #2E6FA8; --vinho-escuro: #225582; --vinho-claro: #E2EEF8; --fundo: #F7FAFD; --fundo-2: #EAF2F9; --linha: #D8E5F1; --dourado: #957330; }
 body[data-tema="preto"] .rodape { background: #000; }
 /* Fontes */
 body[data-fonte="moderna"] { --titulo: 'Poppins', system-ui, sans-serif; }
@@ -225,6 +231,24 @@ body[data-fonte="delicada"] { --titulo: 'Dancing Script', 'Segoe Script', cursiv
 body[data-fonte="delicada"] .marca__nome { font-size: 2rem; font-style: normal; }
 body[data-fonte="delicada"] .apresenta h1, body[data-fonte="delicada"] .secao__titulo { font-size: clamp(2.2rem, 7.5vw, 3.4rem); line-height: 1.05; }
 body[data-fonte="delicada"] .secao__titulo em, body[data-fonte="delicada"] .rodape__nome { font-style: normal; }
+body[data-fonte="classica"] { --titulo: 'Cormorant Garamond', Georgia, serif; }
+body[data-fonte="classica"] .apresenta h1, body[data-fonte="classica"] .secao__titulo, body[data-fonte="classica"] .titulo-pagina { font-size: clamp(2.2rem, 7.5vw, 3.6rem); line-height: 1.05; }
+body[data-fonte="classica"] .marca__nome { font-size: 1.9rem; }
+body[data-fonte="arredondada"] { --titulo: 'Quicksand', system-ui, sans-serif; }
+body[data-fonte="arredondada"] .marca__nome, body[data-fonte="arredondada"] .rodape__nome, body[data-fonte="arredondada"] .secao__titulo em { font-style: normal; }
+body[data-fonte="marcante"] { --titulo: 'Abril Fatface', Georgia, serif; }
+body[data-fonte="marcante"] .apresenta h1, body[data-fonte="marcante"] .secao__titulo, body[data-fonte="marcante"] .titulo-pagina, body[data-fonte="marcante"] .marca__nome, body[data-fonte="marcante"] .passos strong { font-weight: 400; }
+/* Foto do topo, fotos dos produtos e produtos por linha no celular */
+body[data-foto-topo="quadrada"] .apresenta__foto img, body[data-foto-topo="quadrada"] .apresenta__letra { border-radius: 24px; }
+body[data-foto-topo="quadrada"] .apresenta__foto::before { border-radius: 30px; }
+body[data-foto-produto="vertical"] .produto__foto, body[data-foto-produto="vertical"] .produto-pagina__foto { aspect-ratio: 4 / 5; }
+body[data-foto-produto="redonda"] .produto { border-radius: 26px; }
+body[data-foto-produto="redonda"] .produto__foto { margin: 8px 8px 0; border-radius: 20px; overflow: hidden; }
+body[data-foto-produto="redonda"] .produto-pagina__foto { border-radius: 32px; }
+@media (max-width: 639px) {
+  body[data-colunas="1"] .produtos:not(.produtos--linha) { grid-template-columns: 1fr; gap: 1rem; }
+  body[data-colunas="1"] .produtos:not(.produtos--linha) .produto h3 { font-size: 1.15rem; }
+}
 /* Logo em imagem e faixa de aviso */
 .marca__logo { max-height: 48px; max-width: 190px; width: auto; object-fit: contain; }
 .banner { padding: .55rem 20px; background: var(--vinho); color: #fff; font-weight: 700; font-size: .92rem; text-align: center; }

@@ -12,7 +12,7 @@ Loja de **Tupperware, perfumes e kits de beleza** com pedido pelo WhatsApp. Feit
   - **Painel:** pedidos pelo WhatsApp e **relatório para repor o estoque** (mais pedidos e os que não tiveram nenhum pedido), com filtro de período e botão de copiar.
   - **Cadastro rápido:** escolhe várias fotos de uma vez e só preenche nome e preço de cada uma.
   - **Produtos:** cadastrar com foto (direto da câmera), preço, categoria, descrição; botões rápidos de Esgotado, Destaque e No site; ordem do catálogo.
-  - **Aparência:** 6 temas de cores, 3 estilos de letra, logo em imagem (ou o nome escrito), faixa de aviso no topo com data para sumir, ligar e desligar seções da página inicial, e **Voltar ao original**.
+  - **Aparência:** 12 temas de cores, 6 estilos de letra, formato da foto do topo e das fotos dos produtos, produtos por linha no celular, logo em imagem (ou o nome escrito), faixa de aviso no topo com data para sumir, ligar e desligar seções da página inicial, e **Voltar ao original**.
   - **Dados da loja:** WhatsApp, foto, textos, entrega, pagamento, categorias, moeda (R$ ou €) e redes.
 - Contagem de pedidos **sem cookies e sem guardar IP** (1 pedido por pessoa por produto por dia). O site não conta visitas. Política de privacidade em `/privacidade/`.
 - Aviso de revendedora independente no rodapé: o site não usa logos das marcas e não se apresenta como oficial.
