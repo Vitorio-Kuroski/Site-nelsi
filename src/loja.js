@@ -57,7 +57,7 @@ export const AJUSTES_PADRAO = {
     apresentacao: "Oi, eu sou a Nelsi! Aqui você encontra Tupperware, perfumes e kits de beleza para você ou para presentear. Escolha o que gostou e me chame no WhatsApp que eu te atendo pessoalmente.",
     whatsapp: "",
     cidade: "Curitiba",
-    entrega: "Entrego em mãos em Curitiba e região e envio pelo correio para outras cidades. Combine comigo pelo WhatsApp.",
+    entrega: "Entrego em Curitiba e região. Combine o dia e o local comigo pelo WhatsApp.",
     pagamento: "Pix, dinheiro ou cartão.",
     instagram: "",
     facebook: "",
