@@ -131,7 +131,7 @@ function tituloSecao(t) {
 export const OPCOES_APARENCIA = {
     foto_topo: { redonda: "Redonda", quadrada: "Quadrada", sem: "Sem foto" },
     foto_produto: { quadrada: "Quadrada", vertical: "Vertical (boa para perfume)", redonda: "Cantos bem arredondados" },
-    colunas_celular: { "2": "2 por linha", "1": "1 por linha, maior" },
+    colunas_celular: { "1": "1 por linha, maior", "2": "2 por linha", "3": "3 por linha, menores", "4": "4 por linha, bem pequenos" },
 };
 export const FONTES = {
     elegante: { nome: "Elegante", url: "family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800" },
