@@ -14,7 +14,7 @@
 //   PUT    /api/admin/ajustes               salva os dados da loja
 //   POST   /api/admin/imagens               envia uma imagem (JPEG, PNG ou WebP até 1,8 MB) e devolve o endereço
 import { alunoLogado, ehAdmin, json } from "./contas.js";
-import { AJUSTES_PADRAO, APARENCIA_PADRAO, FONTES, OPCOES_APARENCIA, TEMAS, categoriasDe, garantirTabelasLoja, lerAjustes } from "./loja.js";
+import { AJUSTES_PADRAO, APARENCIA_PADRAO, FONTES, OPCOES_APARENCIA, SECOES_INICIO, TEMAS, TEXTOS, ordemDasSecoes, categoriasDe, garantirTabelasLoja, lerAjustes } from "./loja.js";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const URL_OK = /^https:\/\/[^\s"'<>]+$/;
@@ -173,6 +173,8 @@ async function salvarAparencia(request, db) {
         mostrar_destaques: d?.mostrar_destaques ? "1" : "0",
         mostrar_como_comprar: d?.mostrar_como_comprar ? "1" : "0",
         mostrar_pagamento: d?.mostrar_pagamento ? "1" : "0",
+        ...Object.fromEntries(Object.entries(TEXTOS).map(([k, t]) => [k, String(d?.[k] ?? "").trim().slice(0, t.max) || APARENCIA_PADRAO[k]])),
+        ordem_secoes: ordemDasSecoes({ ordem_secoes: Array.isArray(d?.ordem_secoes) ? d.ordem_secoes.join(",") : "" }).join(","),
         ...Object.fromEntries(Object.entries(OPCOES_APARENCIA).map(([k, opcoes]) => [k, String(d?.[k]) in opcoes ? String(d[k]) : APARENCIA_PADRAO[k]])),
     };
     if (a.logo && !IMAGEM_OK.test(a.logo)) return json({ erro: "Logo inválido. Envie pelo botão." }, 422);
@@ -231,7 +233,7 @@ export async function rotasAdmin(request, env) {
     if (url.pathname === "/api/admin/aparencia" && metodo === "GET") {
         const a = await lerAjustes(db);
         return json({ ...Object.fromEntries(Object.keys(APARENCIA_PADRAO).map((k) => [k, a[k]])), nome: a.nome, slogan: a.slogan,
-            temas: TEMAS, fontes: Object.fromEntries(Object.entries(FONTES).map(([k, f]) => [k, f.nome])), opcoes: OPCOES_APARENCIA });
+            temas: TEMAS, fontes: Object.fromEntries(Object.entries(FONTES).map(([k, f]) => [k, f.nome])), opcoes: OPCOES_APARENCIA, textos: TEXTOS, padrao: APARENCIA_PADRAO, secoes: SECOES_INICIO, ordem: ordemDasSecoes(a) });
     }
     if (url.pathname === "/api/admin/aparencia" && metodo === "PUT") return salvarAparencia(request, db);
     return json({ erro: "Não encontrado." }, 404);

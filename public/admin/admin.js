@@ -501,6 +501,13 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
                     </div>
                 </div>
             </div>
+            <h3 class="adm-form__titulo">Textos dos botões e títulos <span class="adm-form__dica">em branco, volta ao texto original</span></h3>
+            <div class="adm-duas-colunas">
+                ${Object.entries(a.textos).map(([k, t]) => `<label class="campo">${esc(t.rotulo)}<input name="${k}" maxlength="${t.max}" value="${esc(a[k] === a.padrao[k] ? "" : a[k])}" placeholder="${esc(a.padrao[k])}"></label>`).join("")}
+            </div>
+            <div class="campo">Ordem das seções da página inicial <span class="adm-form__dica">use as setas; o topo com a foto fica sempre em primeiro</span>
+                <ol class="adm-ordem-secoes" id="ordem-secoes"></ol>
+            </div>
             <h3 class="adm-form__titulo">Faixa de aviso no topo <span class="adm-form__dica">em branco, a faixa some</span></h3>
             <label class="campo">Texto<input name="banner_texto" maxlength="140" value="${esc(a.banner_texto)}" placeholder="Ex.: Promoção de Natal: kits com 20% off até dia 20!"></label>
             <label class="campo adm-form__data">Mostrar até <span class="adm-form__dica">opcional: no dia seguinte a faixa some sozinha</span><input type="date" name="banner_ate" value="${esc(a.banner_ate)}"></label>
@@ -517,6 +524,23 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
         </form>`;
     const form = document.getElementById("form-aparencia");
     let logo = a.logo;
+    let ordem = [...a.ordem];
+    const listaOrdem = document.getElementById("ordem-secoes");
+    const desenharOrdem = () => {
+        listaOrdem.innerHTML = ordem.map((k, i) => `<li><b>${i + 1}</b><span>${esc(a.secoes[k])}</span>
+            <button type="button" class="adm-mini adm-mini--neutro" data-sobe="${i}" aria-label="Subir ${esc(a.secoes[k])}" ${i ? "" : "disabled"}>↑</button>
+            <button type="button" class="adm-mini adm-mini--neutro" data-desce="${i}" aria-label="Descer ${esc(a.secoes[k])}" ${i < ordem.length - 1 ? "" : "disabled"}>↓</button></li>`).join("");
+    };
+    listaOrdem.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-sobe],[data-desce]");
+        if (!b) return;
+        const i = Number(b.dataset.sobe ?? b.dataset.desce), j = b.dataset.sobe !== undefined ? i - 1 : i + 1;
+        [ordem[i], ordem[j]] = [ordem[j], ordem[i]];
+        sujo = true;
+        desenharOrdem();
+        listaOrdem.querySelector(`[data-${b.dataset.sobe !== undefined ? "sobe" : "desce"}="${j}"]`)?.focus();
+    });
+    desenharOrdem();
     let sujo = false;
     form.addEventListener("input", () => { sujo = true; });
     form.addEventListener("change", () => { sujo = true; });
@@ -560,12 +584,13 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
         salvar({
             tema: form.tema.value, fonte: form.fonte.value, logo,
             foto_topo: form.foto_topo.value, foto_produto: form.foto_produto.value, colunas_celular: form.colunas_celular.value,
+            ...Object.fromEntries(Object.keys(a.textos).map((k) => [k, form[k].value])), ordem_secoes: ordem,
             banner_texto: form.banner_texto.value, banner_ate: form.banner_ate.value,
             mostrar_destaques: form.mostrar_destaques.checked, mostrar_como_comprar: form.mostrar_como_comprar.checked, mostrar_pagamento: form.mostrar_pagamento.checked,
         }, "Salvo. Abra o site para ver como ficou.");
     });
     document.getElementById("original").addEventListener("click", () => {
-        if (!confirm("Voltar a aparência ao original? Cores, letras, fotos, logo, faixa de aviso e seções voltam ao padrão. Produtos e textos da loja não mudam.")) return;
+        if (!confirm("Voltar a aparência ao original? Cores, letras, fotos, textos dos botões, ordem das seções, logo e faixa de aviso voltam ao padrão. Produtos e textos da loja não mudam.")) return;
         salvar({ original: true }, "Pronto: a aparência voltou ao original.");
     });
 }

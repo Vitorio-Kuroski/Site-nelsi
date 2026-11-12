@@ -94,7 +94,36 @@ export const APARENCIA_PADRAO = {
     foto_topo: "redonda",
     foto_produto: "quadrada",
     colunas_celular: "2",
+    texto_pedir: "Pedir",
+    texto_ver_catalogo: "Ver o catálogo",
+    texto_falar: "Falar comigo",
+    texto_enviar_sacola: "Enviar pedido no WhatsApp",
+    titulo_destaques: "Destaques e promoções",
+    titulo_catalogo: "Catálogo",
+    titulo_como_comprar: "Como comprar",
+    ordem_secoes: "destaques,catalogo,como_comprar",
 };
+export const SECOES_INICIO = { destaques: "Destaques e promoções", catalogo: "Catálogo", como_comprar: "Como comprar" };
+export const TEXTOS = {
+    texto_pedir: { rotulo: "Botão de pedir (em cada produto)", max: 20 },
+    texto_ver_catalogo: { rotulo: "Botão do topo para o catálogo", max: 30 },
+    texto_falar: { rotulo: "Botão do topo para o WhatsApp", max: 30 },
+    texto_enviar_sacola: { rotulo: "Botão de enviar a sacola", max: 40 },
+    titulo_destaques: { rotulo: "Título dos destaques", max: 40 },
+    titulo_catalogo: { rotulo: "Título do catálogo", max: 40 },
+    titulo_como_comprar: { rotulo: "Título do \"Como comprar\"", max: 40 },
+};
+export function ordemDasSecoes(a) {
+    const lista = String(a.ordem_secoes || "").split(",").filter((k) => k in SECOES_INICIO);
+    return [...new Set([...lista, ...Object.keys(SECOES_INICIO)])];
+}
+// A última palavra do título fica em destaque (itálico, na cor do tema)
+function tituloSecao(t) {
+    const palavras = String(t).trim().split(/\s+/);
+    if (palavras.length < 2) return esc(t);
+    const ultima = palavras.pop();
+    return `${esc(palavras.join(" "))} <em>${esc(ultima)}</em>`;
+}
 export const OPCOES_APARENCIA = {
     foto_topo: { redonda: "Redonda", quadrada: "Quadrada", sem: "Sem foto" },
     foto_produto: { quadrada: "Quadrada", vertical: "Vertical (boa para perfume)", redonda: "Cantos bem arredondados" },
@@ -129,6 +158,7 @@ export async function lerAjustes(db) {
     if (!TEMAS[a.tema]) a.tema = APARENCIA_PADRAO.tema;
     if (!FONTES[a.fonte]) a.fonte = APARENCIA_PADRAO.fonte;
     for (const [k, opcoes] of Object.entries(OPCOES_APARENCIA)) if (!(a[k] in opcoes)) a[k] = APARENCIA_PADRAO[k];
+    for (const k of Object.keys(TEXTOS)) if (!String(a[k] || "").trim()) a[k] = APARENCIA_PADRAO[k];
     return a;
 }
 
@@ -212,8 +242,8 @@ export function pagina(request, ajustes, { titulo, descricao, conteudo, status =
         <div class="caixa topo__linha">
             <a href="/" class="marca" aria-label="${esc(nome)}, página inicial">${ajustes.logo ? `<img class="marca__logo" src="${esc(ajustes.logo)}" alt="${esc(nome)}">` : `<span class="marca__nome">${esc(nome)}</span><span class="marca__sub">${esc(ajustes.slogan)}</span>`}</a>
             <nav class="menu" aria-label="Menu principal">
-                <a href="/#catalogo">Catálogo</a>
-                ${ajustes.mostrar_como_comprar === "1" ? '<a href="/#como-comprar">Como comprar</a>' : ""}
+                <a href="/#catalogo">${esc(ajustes.titulo_catalogo)}</a>
+                ${ajustes.mostrar_como_comprar === "1" ? `<a href="/#como-comprar">${esc(ajustes.titulo_como_comprar)}</a>` : ""}
             </nav>
             ${zap ? `<a class="botao botao--zap botao--pequeno" href="${esc(linkZap(ajustes, `Oi ${primeiroNome(ajustes)}! Vim pelo site.`))}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>WhatsApp</span></a>` : ""}
         </div>
@@ -239,7 +269,7 @@ ${conteudo}
         <div class="sacola__lista" id="sacola-lista" hidden>
             <p class="sacola__titulo">Sua sacola</p>
             <ul id="sacola-itens"></ul>
-            <button type="button" class="botao botao--zap botao--largo" id="sacola-enviar">${ICONES.whatsapp}<span>Enviar pedido no WhatsApp</span></button>
+            <button type="button" class="botao botao--zap botao--largo" id="sacola-enviar">${ICONES.whatsapp}<span>${esc(ajustes.texto_enviar_sacola)}</span></button>
             <button type="button" class="sacola__limpar" id="sacola-limpar">Esvaziar a sacola</button>
         </div>
     </div>
@@ -276,7 +306,7 @@ function cartaoProduto(p, a) {
                     </div>
                     ${p.esgotado ? `<a class="botao botao--contorno botao--largo" href="${zap ? `/pedir/${esc(p.slug)}` : `/produto/${esc(p.slug)}/`}" ${zap ? 'target="_blank" rel="noopener"' : ""}>Avise quando chegar</a>`
                         : `<div class="produto__acoes">
-                        ${zap ? `<a class="botao botao--zap" href="/pedir/${esc(p.slug)}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>Pedir</span></a>` : ""}
+                        ${zap ? `<a class="botao botao--zap" href="/pedir/${esc(p.slug)}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>${esc(a.texto_pedir)}</span></a>` : ""}
                         <button type="button" class="botao botao--sacola" data-sacola="${esc(p.slug)}" data-nome="${esc(p.nome)}" data-preco="${p.preco}" aria-label="Colocar ${esc(p.nome)} na sacola" title="Colocar na sacola">${ICONES.sacola}${ICONES.mais}</button>
                     </div>`}
                 </article>`;
@@ -293,37 +323,17 @@ export async function paginaInicial(request, env) {
     const foto = a.foto
         ? `<img src="${esc(a.foto)}" alt="Foto de ${esc(a.nome)}" width="320" height="320">`
         : `<span class="apresenta__letra" aria-hidden="true">${esc(primeiroNome(a)[0] || "N")}</span>`;
-    return pagina(request, a, {
-        inicio: true,
-        titulo: a.nome,
-        descricao: `${a.slogan}${a.cidade ? ` em ${a.cidade}` : ""}. Veja o catálogo e peça pelo WhatsApp.`,
-        conteudo: `
-        <section class="apresenta">
-            <div class="caixa apresenta__grade">
-                <div class="apresenta__texto">
-                    <p class="apresenta__ola">${a.cidade ? `${esc(a.cidade)} · ` : ""}atendimento pelo WhatsApp</p>
-                    <h1>${esc(a.slogan)}</h1>
-                    <p class="apresenta__lead">${esc(a.apresentacao)}</p>
-                    <div class="apresenta__acoes">
-                        <a class="botao" href="#catalogo">Ver o catálogo</a>
-                        ${zap ? `<a class="botao botao--zap" href="${esc(linkZap(a, `Oi ${primeiroNome(a)}! Vim pelo site e queria uma ajuda.`))}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>Falar comigo</span></a>` : ""}
-                    </div>
-                </div>
-                ${a.foto_topo === "sem" ? "" : `<div class="apresenta__foto">${foto}</div>`}
-            </div>
-        </section>
-
-        ${destaques.length && a.mostrar_destaques === "1" ? `<section class="secao" id="destaques">
+    const secoes = {
+        destaques: `        ${destaques.length && a.mostrar_destaques === "1" ? `<section class="secao" id="destaques">
             <div class="caixa">
-                <h2 class="secao__titulo">Destaques e <em>promoções</em></h2>
+                <h2 class="secao__titulo">${tituloSecao(a.titulo_destaques)}</h2>
                 <div class="produtos produtos--linha">${destaques.map((p) => cartaoProduto(p, a)).join("")}
                 </div>
             </div>
-        </section>` : ""}
-
-        <section class="secao secao--catalogo" id="catalogo">
+        </section>` : ""}`,
+        catalogo: `        <section class="secao secao--catalogo" id="catalogo">
             <div class="caixa">
-                <h2 class="secao__titulo">Catálogo</h2>
+                <h2 class="secao__titulo">${tituloSecao(a.titulo_catalogo)}</h2>
                 ${produtos.length ? `
                 <div class="catalogo__ferramentas">
                     <label class="busca"><span class="sr-only">Procurar produto</span>
@@ -338,19 +348,40 @@ export async function paginaInicial(request, env) {
                 <p class="catalogo__vazio" id="nada" hidden>Não achei nada com essa busca. ${zap ? `<a href="${esc(linkZap(a, `Oi ${primeiroNome(a)}! Você tem `))}" target="_blank" rel="noopener">Pergunte pra mim no WhatsApp</a>: muita coisa chega por encomenda.` : ""}</p>`
                 : `<p class="catalogo__vazio">Os produtos estão chegando. ${zap ? `Enquanto isso, <a href="${esc(linkZap(a, `Oi ${primeiroNome(a)}! Queria ver o catálogo.`))}" target="_blank" rel="noopener">me chame no WhatsApp</a> que eu mando as novidades.` : ""}</p>`}
             </div>
-        </section>
-
-        ${a.mostrar_como_comprar === "1" ? `<section class="secao" id="como-comprar">
+        </section>`,
+        como_comprar: `        ${a.mostrar_como_comprar === "1" ? `<section class="secao" id="como-comprar">
             <div class="caixa">
-                <h2 class="secao__titulo">Como <em>comprar</em></h2>
+                <h2 class="secao__titulo">${tituloSecao(a.titulo_como_comprar)}</h2>
                 <ol class="passos">
-                    <li><span>1</span><strong>Escolha</strong><p>Toque em <b>Pedir</b> no produto, ou junte vários na <b>sacola</b>.</p></li>
+                    <li><span>1</span><strong>Escolha</strong><p>Toque em <b>${esc(a.texto_pedir)}</b> no produto, ou junte vários na <b>sacola</b>.</p></li>
                     <li><span>2</span><strong>Me chame no WhatsApp</strong><p>A mensagem já vai pronta com o que você escolheu. Eu confirmo se tem e o valor.</p></li>
                     <li><span>3</span><strong>Combine o dia e o local</strong><p>${esc(a.entrega)}</p></li>
                 </ol>
                 ${a.mostrar_pagamento === "1" && a.pagamento ? `<p class="pagamento"><strong>Pagamento:</strong> ${esc(a.pagamento)}</p>` : ""}
             </div>
         </section>` : a.mostrar_pagamento === "1" && a.pagamento ? `<section class="secao"><div class="caixa"><p class="pagamento"><strong>Pagamento:</strong> ${esc(a.pagamento)}</p></div></section>` : ""}`,
+    };
+    return pagina(request, a, {
+        inicio: true,
+        titulo: a.nome,
+        descricao: `${a.slogan}${a.cidade ? ` em ${a.cidade}` : ""}. Veja o catálogo e peça pelo WhatsApp.`,
+        conteudo: `
+        <section class="apresenta">
+            <div class="caixa apresenta__grade">
+                <div class="apresenta__texto">
+                    <p class="apresenta__ola">${a.cidade ? `${esc(a.cidade)} · ` : ""}atendimento pelo WhatsApp</p>
+                    <h1>${esc(a.slogan)}</h1>
+                    <p class="apresenta__lead">${esc(a.apresentacao)}</p>
+                    <div class="apresenta__acoes">
+                        <a class="botao" href="#catalogo">${esc(a.texto_ver_catalogo)}</a>
+                        ${zap ? `<a class="botao botao--zap" href="${esc(linkZap(a, `Oi ${primeiroNome(a)}! Vim pelo site e queria uma ajuda.`))}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>${esc(a.texto_falar)}</span></a>` : ""}
+                    </div>
+                </div>
+                ${a.foto_topo === "sem" ? "" : `<div class="apresenta__foto">${foto}</div>`}
+            </div>
+        </section>
+
+        ${ordemDasSecoes(a).map((k) => secoes[k]).join("\n\n")}`,
     });
 }
 
