@@ -210,6 +210,8 @@ body.com-sacola .rodape { padding-bottom: 96px; }
 .link-seta { color: var(--vinho); font-weight: 700; }
 .botao--sacola.adicionado:hover { background: var(--vinho-escuro); border-color: var(--vinho-escuro); color: #fff; }
 
+.texto-curto { display: none; }
+
 /* ---------- Aparência escolhida no painel ---------- */
 /* Temas: as cores vêm de public/admin/cores.js e entram na página como variáveis (no <head>) */
 body[data-tema="preto"] .rodape { background: #000; }
@@ -259,7 +261,9 @@ body[data-foto-produto="redonda"] .produto-pagina__foto { border-radius: 32px; }
   body[data-colunas="3"] #produtos .produto__acoes .botao svg, body[data-colunas="4"] #produtos .produto__acoes .botao svg { width: 17px; height: 17px; }
   body[data-colunas="3"] #produtos .botao--sacola svg + svg, body[data-colunas="4"] #produtos .botao--sacola svg + svg { display: none; }
   body[data-colunas="4"] #produtos .produto__acoes .botao--sacola { display: none; }
-  body[data-colunas="3"] #produtos .produto > .botao--largo, body[data-colunas="4"] #produtos .produto > .botao--largo { margin: .3rem .4rem .5rem; padding: .35rem .25rem; font-size: .62rem; line-height: 1.2; }
+  body[data-colunas="3"] #produtos .produto > .botao--largo, body[data-colunas="4"] #produtos .produto > .botao--largo { margin: .3rem .4rem .5rem; padding: .4rem .25rem; font-size: .75rem; line-height: 1.2; }
+  body[data-colunas="3"] #produtos .texto-longo, body[data-colunas="4"] #produtos .texto-longo { display: none; }
+  body[data-colunas="3"] #produtos .texto-curto, body[data-colunas="4"] #produtos .texto-curto { display: inline; }
 }
 /* Logo em imagem e faixa de aviso */
 .marca__logo { max-height: 48px; max-width: 190px; width: auto; object-fit: contain; }

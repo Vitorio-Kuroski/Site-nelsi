@@ -296,7 +296,7 @@ function cartaoProduto(p, a) {
                         <h3><a href="/produto/${esc(p.slug)}/">${esc(p.nome)}</a></h3>
                         ${precoHtml(p, a.moeda)}
                     </div>
-                    ${p.esgotado ? `<a class="botao botao--contorno botao--largo" href="${zap ? `/pedir/${esc(p.slug)}` : `/produto/${esc(p.slug)}/`}" ${zap ? 'target="_blank" rel="noopener"' : ""}>Avise quando chegar</a>`
+                    ${p.esgotado ? `<a class="botao botao--contorno botao--largo" href="${zap ? `/pedir/${esc(p.slug)}` : `/produto/${esc(p.slug)}/`}" ${zap ? 'target="_blank" rel="noopener"' : ""}><span class="texto-longo">Avise quando chegar</span><span class="texto-curto">Em breve</span></a>`
                         : `<div class="produto__acoes">
                         ${zap ? `<a class="botao botao--zap" href="/pedir/${esc(p.slug)}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>${esc(a.texto_pedir)}</span></a>` : ""}
                         <button type="button" class="botao botao--sacola" data-sacola="${esc(p.slug)}" data-nome="${esc(p.nome)}" data-preco="${p.preco}" aria-label="Colocar ${esc(p.nome)} na sacola" title="Colocar na sacola">${ICONES.sacola}${ICONES.mais}</button>
