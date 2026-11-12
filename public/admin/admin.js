@@ -462,8 +462,6 @@ async function paginaLote() {
 
 // ---------- Aparência ----------
 
-const FUNDOS_TEMA = { vinho: "#FBF6F1", rosa: "#FFF7FA", lilas: "#FAF7FD", oliva: "#FAF8F1", preto: "#FBF8F3", marinho: "#F7F9FC",
-    coral: "#FFF8F5", turquesa: "#F6FBFA", terracota: "#FCF7F2", nude: "#FCF8F6", vermelho: "#FFF8F7", ceu: "#F7FAFD" };
 const FAMILIAS_FONTE = { elegante: "'Playfair Display', Georgia, serif", moderna: "'Poppins', system-ui, sans-serif", delicada: "'Dancing Script', cursive",
     classica: "'Cormorant Garamond', Georgia, serif", arredondada: "'Quicksand', system-ui, sans-serif", marcante: "'Abril Fatface', Georgia, serif" };
 const ROTULOS_OPCOES = { foto_topo: "Foto do topo", foto_produto: "Fotos dos produtos", colunas_celular: "Produtos por linha no celular" };
@@ -479,15 +477,39 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
             <fieldset class="adm-escolhas"><legend>Cores</legend>
                 ${Object.entries(a.temas).map(([k, t]) => `<label class="adm-escolha adm-escolha--tema">
                     <input type="radio" name="tema" value="${k}" ${a.tema === k ? "checked" : ""}>
-                    <span class="adm-escolha__amostra" style="background:${FUNDOS_TEMA[k]}"><i style="background:${t.cor}"></i><b style="color:${t.cor}">Aa</b></span>
+                    <span class="adm-escolha__amostra" style="background:${t.cores["--fundo"]}"><i style="background:${t.cores["--vinho"]}"></i><b style="color:${t.cores["--vinho"]}">Aa</b></span>
                     <span>${esc(t.nome)}</span></label>`).join("")}
+                <label class="adm-escolha adm-escolha--tema adm-escolha--propria">
+                    <input type="radio" name="tema" value="propria" ${a.tema === "propria" ? "checked" : ""}>
+                    <span class="adm-escolha__amostra" id="propria-amostra"><i></i><b>Aa</b></span>
+                    <span>Minha cor</span></label>
             </fieldset>
+            <div class="adm-minha-cor" id="minha-cor" ${a.tema === "propria" ? "" : "hidden"}>
+                <p class="adm-form__titulo">Escolha a sua cor</p>
+                <div class="adm-minha-cor__acoes">
+                    <label class="adm-botao adm-roda">🎨 Escolher na roda de cores<input type="color" id="roda" value="${esc(a.cor_propria || "#8E2445")}"></label>
+                    <span class="adm-minha-cor__atual"><i id="cor-atual"></i><code id="cor-codigo"></code></span>
+                </div>
+                <div class="adm-paleta">${(window.cores?.PALETA || []).map(([familia, tons]) => `<div class="adm-paleta__familia"><span>${esc(familia)}</span>
+                    ${tons.map((c) => `<button type="button" class="adm-paleta__cor" data-cor="${c}" style="background:${c}" aria-label="Cor ${c}" title="${c}"></button>`).join("")}</div>`).join("")}</div>
+                <p class="adm-aviso adm-aviso--ok adm-minha-cor__aviso" id="cor-aviso" hidden></p>
+            </div>
             <fieldset class="adm-escolhas"><legend>Letras dos títulos</legend>
                 ${Object.entries(a.fontes).map(([k, nome]) => `<label class="adm-escolha adm-escolha--fonte">
                     <input type="radio" name="fonte" value="${k}" ${a.fonte === k ? "checked" : ""}>
                     <span class="adm-escolha__amostra" style="font-family:${FAMILIAS_FONTE[k]}">${esc(a.nome)}</span>
                     <span>${esc(nome)}</span></label>`).join("")}
             </fieldset>
+            <div class="campo">Prévia <span class="adm-form__dica">muda na hora; o site só muda quando você salvar</span>
+                <div class="adm-previa" id="previa">
+                    <div class="adm-previa__topo"><b class="adm-previa__marca">${esc(a.nome)}</b><span class="adm-previa__zap">WhatsApp</span></div>
+                    <p class="adm-previa__titulo">${esc(a.slogan)}</p>
+                    <div class="adm-previa__botoes"><span class="adm-previa__botao">Ver o catálogo</span><span class="adm-previa__botao adm-previa__botao--contorno">Sacola</span></div>
+                    <div class="adm-previa__produto"><span class="adm-previa__foto"><em>Promoção</em></span>
+                        <small class="adm-previa__categoria">Perfumes</small><b>Perfume Floral 100 ml</b><strong class="adm-previa__preco">R$ 129,90</strong>
+                        <span class="adm-previa__pedir">${esc(a.texto_pedir)}</span></div>
+                </div>
+            </div>
             ${Object.entries(a.opcoes).map(([campo, opcoes]) => `<fieldset class="adm-escolhas adm-escolhas--texto"><legend>${ROTULOS_OPCOES[campo]}</legend>
                 ${Object.entries(opcoes).map(([k, nome]) => `<label class="adm-escolha"><input type="radio" name="${campo}" value="${k}" ${a[campo] === k ? "checked" : ""}><span>${esc(nome)}</span></label>`).join("")}
             </fieldset>`).join("")}
@@ -524,6 +546,50 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
         </form>`;
     const form = document.getElementById("form-aparencia");
     let logo = a.logo;
+    let corPropria = a.cor_propria || "";
+    // Minha cor e prévia ao vivo
+    const atualizarPrevia = () => {
+        const tema = form.tema.value;
+        const c = window.cores;
+        if (!c) return;
+        const vars = tema === "propria" ? c.paletaDe(corPropria || "#8E2445").cores : a.temas[tema].cores;
+        const previa = document.getElementById("previa");
+        for (const [k, v] of Object.entries(vars)) previa.style.setProperty(k, v);
+        previa.style.setProperty("--titulo-previa", FAMILIAS_FONTE[form.fonte.value]);
+        previa.querySelector(".adm-previa__pedir").textContent = form.texto_pedir.value.trim() || a.padrao.texto_pedir;
+        document.getElementById("minha-cor").hidden = tema !== "propria";
+        const amostra = document.getElementById("propria-amostra");
+        if (corPropria) {
+            const p = c.paletaDe(corPropria).cores;
+            amostra.style.background = p["--fundo"];
+            amostra.querySelector("i").style.background = p["--vinho"];
+            amostra.querySelector("b").style.color = p["--vinho"];
+        }
+        if (tema === "propria") {
+            const p = c.paletaDe(corPropria || "#8E2445");
+            document.getElementById("cor-atual").style.background = p.cores["--vinho"];
+            document.getElementById("cor-codigo").textContent = corPropria ? p.cores["--vinho"] : "escolha uma cor";
+            const avisoCor = document.getElementById("cor-aviso");
+            avisoCor.hidden = !(corPropria && p.ajustada);
+            avisoCor.textContent = "Ajustamos um pouco a cor (deixamos mais escura) para o texto branco dos botões ficar fácil de ler.";
+            document.querySelectorAll(".adm-paleta__cor").forEach((b) => b.classList.toggle("escolhida", b.dataset.cor === corPropria));
+        }
+    };
+    const escolherCor = (hex) => {
+        corPropria = hex.toUpperCase();
+        form.querySelector('input[name=tema][value=propria]').checked = true;
+        document.getElementById("roda").value = corPropria.toLowerCase();
+        sujo = true;
+        atualizarPrevia();
+    };
+    document.getElementById("roda").addEventListener("input", (e) => escolherCor(e.target.value));
+    document.querySelector(".adm-paleta").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-cor]");
+        if (b) escolherCor(b.dataset.cor);
+    });
+    form.addEventListener("change", atualizarPrevia);
+    form.addEventListener("input", atualizarPrevia);
+    atualizarPrevia();
     let ordem = [...a.ordem];
     const listaOrdem = document.getElementById("ordem-secoes");
     const desenharOrdem = () => {
@@ -582,7 +648,7 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
     form.addEventListener("submit", (e) => {
         e.preventDefault();
         salvar({
-            tema: form.tema.value, fonte: form.fonte.value, logo,
+            tema: form.tema.value, cor_propria: corPropria, fonte: form.fonte.value, logo,
             foto_topo: form.foto_topo.value, foto_produto: form.foto_produto.value, colunas_celular: form.colunas_celular.value,
             ...Object.fromEntries(Object.keys(a.textos).map((k) => [k, form[k].value])), ordem_secoes: ordem,
             banner_texto: form.banner_texto.value, banner_ate: form.banner_ate.value,

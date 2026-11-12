@@ -323,3 +323,37 @@ ol.adm-lista li { display: list-item; }
 .adm-ordem-secoes li { display: flex; align-items: center; gap: .4rem; padding: .45rem .6rem; border: 1px solid var(--linha); border-radius: 10px; background: var(--fundo); }
 .adm-ordem-secoes li span { flex: 1; }
 .adm-ordem-secoes b { min-width: 1.2em; color: var(--suave); }
+
+/* Minha cor e prévia */
+.adm-escolha--propria .adm-escolha__amostra { background: linear-gradient(135deg, #FDE2E4, #E2ECFB 50%, #E6F6E9); }
+.adm-escolha--propria .adm-escolha__amostra i { background: conic-gradient(#E53935, #FBC02D, #43A047, #1E88E5, #8E24AA, #E53935); }
+.adm-minha-cor { display: grid; gap: .8rem; padding: 1rem; border: 1px solid var(--linha); border-radius: 14px; background: var(--fundo); }
+.adm-minha-cor .adm-form__titulo { margin: 0; }
+.adm-minha-cor__acoes { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
+.adm-roda { position: relative; cursor: pointer; }
+.adm-roda input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.adm-minha-cor__atual { display: inline-flex; align-items: center; gap: .45rem; font-size: .88rem; }
+.adm-minha-cor__atual i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--linha); }
+.adm-paleta { display: grid; gap: .45rem; }
+.adm-paleta__familia { display: flex; align-items: center; gap: .4rem; }
+.adm-paleta__familia span { width: 8.5rem; flex: none; font-size: .78rem; color: var(--suave); }
+.adm-paleta__cor { width: 34px; height: 34px; flex: none; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--linha); cursor: pointer; }
+.adm-paleta__cor.escolhida { box-shadow: 0 0 0 3px var(--texto); }
+@media (max-width: 420px) { .adm-paleta__familia { flex-wrap: wrap; } .adm-paleta__familia span { width: 100%; } }
+.adm-minha-cor__aviso { margin: 0; }
+.adm-previa { max-width: 360px; padding: 1rem; border-radius: 18px; border: 1px solid var(--linha); background: var(--fundo); color: #2B1D1A; font-weight: 400; }
+.adm-previa__topo { display: flex; align-items: center; justify-content: space-between; padding-bottom: .7rem; border-bottom: 1px solid var(--linha); }
+.adm-previa__marca { font-family: var(--titulo-previa); font-size: 1.5rem; color: var(--vinho); }
+.adm-previa__zap { padding: .3rem .7rem; border-radius: 999px; background: #178A46; color: #fff; font-size: .8rem; font-weight: 700; }
+.adm-previa__titulo { margin: .8rem 0 .6rem; font-family: var(--titulo-previa); font-size: 1.5rem; font-weight: 700; line-height: 1.15; }
+.adm-previa__botoes { display: flex; gap: .5rem; }
+.adm-previa__botao { padding: .45rem .9rem; border: 2px solid var(--vinho); border-radius: 999px; background: var(--vinho); color: #fff; font-size: .85rem; font-weight: 700; }
+.adm-previa__botao--contorno { background: transparent; color: var(--vinho); }
+.adm-previa__produto { display: grid; gap: .15rem; width: 170px; margin-top: .9rem; padding-bottom: .7rem; overflow: hidden; border-radius: 14px; background: #fff; box-shadow: 0 8px 20px -14px rgba(0, 0, 0, .4); }
+.adm-previa__produto > :not(.adm-previa__foto) { margin: 0 .7rem; }
+.adm-previa__foto { position: relative; height: 90px; margin-bottom: .4rem; background: var(--fundo-2); }
+.adm-previa__foto em { position: absolute; top: 8px; left: 8px; padding: .1rem .5rem; border-radius: 999px; background: var(--vinho); color: #fff; font-size: .62rem; font-style: normal; font-weight: 800; text-transform: uppercase; }
+.adm-previa__categoria { font-size: .62rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--dourado); }
+.adm-previa__produto b { font-size: .85rem; }
+.adm-previa__preco { color: var(--vinho); }
+.adm-previa__pedir { justify-self: start; margin-top: .3rem !important; padding: .35rem .8rem; border-radius: 999px; background: #178A46; color: #fff; font-size: .8rem; font-weight: 700; }

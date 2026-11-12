@@ -165,7 +165,8 @@ async function salvarAparencia(request, db) {
     let d;
     try { d = await request.json(); } catch { return json({ erro: "Dados inválidos." }, 400); }
     const a = d?.original ? { ...APARENCIA_PADRAO } : {
-        tema: TEMAS[d?.tema] ? d.tema : APARENCIA_PADRAO.tema,
+        tema: TEMAS[d?.tema] || (d?.tema === "propria" && /^#[0-9a-f]{6}$/i.test(d?.cor_propria || "")) ? d.tema : APARENCIA_PADRAO.tema,
+        cor_propria: /^#[0-9a-f]{6}$/i.test(d?.cor_propria || "") ? d.cor_propria.toUpperCase() : "",
         fonte: FONTES[d?.fonte] ? d.fonte : APARENCIA_PADRAO.fonte,
         logo: String(d?.logo ?? "").trim(),
         banner_texto: String(d?.banner_texto ?? "").trim().slice(0, 140),

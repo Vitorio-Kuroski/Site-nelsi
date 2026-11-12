@@ -9,6 +9,9 @@
 // /sitemap.xml          páginas para o Google
 // Tudo o que muda (produtos, preços, WhatsApp, textos) é editado no painel e fica no banco D1.
 import { garantirTabelas } from "./contas.js";
+import { TEMAS, coresDoTema, hexOk } from "../public/admin/cores.js";
+
+export { TEMAS };
 
 const TABELAS = [
     `CREATE TABLE IF NOT EXISTS ajustes (chave TEXT PRIMARY KEY, valor TEXT NOT NULL DEFAULT '')`,
@@ -84,6 +87,7 @@ export async function garantirTabelasLoja(db) {
 // Aparência (tela "Aparência" do painel). Fica separada dos dados da loja e pode voltar ao original.
 export const APARENCIA_PADRAO = {
     tema: "vinho",
+    cor_propria: "",
     fonte: "elegante",
     logo: "",
     banner_texto: "",
@@ -129,20 +133,6 @@ export const OPCOES_APARENCIA = {
     foto_produto: { quadrada: "Quadrada", vertical: "Vertical (boa para perfume)", redonda: "Cantos bem arredondados" },
     colunas_celular: { "2": "2 por linha", "1": "1 por linha, maior" },
 };
-export const TEMAS = {
-    vinho: { nome: "Vinho", cor: "#8E2445" },
-    rosa: { nome: "Rosa", cor: "#C2407A" },
-    lilas: { nome: "Lilás", cor: "#6E4BA8" },
-    oliva: { nome: "Verde-oliva", cor: "#5E6B2E" },
-    preto: { nome: "Preto e dourado", cor: "#1F1B1A" },
-    marinho: { nome: "Azul-marinho", cor: "#1F3A68" },
-    coral: { nome: "Coral", cor: "#C8463C" },
-    turquesa: { nome: "Turquesa", cor: "#12807A" },
-    terracota: { nome: "Terracota", cor: "#A8502E" },
-    nude: { nome: "Nude", cor: "#9C6B5E" },
-    vermelho: { nome: "Vermelho", cor: "#B3202E" },
-    ceu: { nome: "Azul-céu", cor: "#2E6FA8" },
-};
 export const FONTES = {
     elegante: { nome: "Elegante", url: "family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800" },
     moderna: { nome: "Moderna", url: "family=Poppins:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800" },
@@ -155,7 +145,7 @@ export const FONTES = {
 export async function lerAjustes(db) {
     const { results } = await db.prepare("SELECT chave, valor FROM ajustes").all();
     const a = { ...AJUSTES_PADRAO, ...APARENCIA_PADRAO, ...Object.fromEntries(results.map((r) => [r.chave, r.valor])) };
-    if (!TEMAS[a.tema]) a.tema = APARENCIA_PADRAO.tema;
+    if (!TEMAS[a.tema] && !(a.tema === "propria" && hexOk(a.cor_propria))) a.tema = APARENCIA_PADRAO.tema;
     if (!FONTES[a.fonte]) a.fonte = APARENCIA_PADRAO.fonte;
     for (const [k, opcoes] of Object.entries(OPCOES_APARENCIA)) if (!(a[k] in opcoes)) a[k] = APARENCIA_PADRAO[k];
     for (const k of Object.keys(TEXTOS)) if (!String(a[k] || "").trim()) a[k] = APARENCIA_PADRAO[k];
@@ -209,6 +199,7 @@ export function pagina(request, ajustes, { titulo, descricao, conteudo, status =
     const foto = imagemPagina || ajustes.foto;
     const imagem = foto ? new URL(foto, url.origin).toString() : "";
     const zap = numeroZap(ajustes);
+    const cores = coresDoTema(ajustes.tema, ajustes.cor_propria);
     const hoje = new Date().toISOString().slice(0, 10);
     const banner = ajustes.banner_texto && (!ajustes.banner_ate || ajustes.banner_ate >= hoje)
         ? `\n    <p class="banner">${esc(ajustes.banner_texto)}</p>` : "";
@@ -220,7 +211,7 @@ export function pagina(request, ajustes, { titulo, descricao, conteudo, status =
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="${TEMAS[ajustes.tema].cor}">
+    <meta name="theme-color" content="${cores["--vinho"]}">
     <title>${esc(tituloCompleto)}</title>
     <meta name="description" content="${esc(descricao)}">${indexar ? "" : '\n    <meta name="robots" content="noindex">'}
     <link rel="canonical" href="${url.origin}${url.pathname}">
@@ -234,6 +225,7 @@ export function pagina(request, ajustes, { titulo, descricao, conteudo, status =
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?${FONTES[ajustes.fonte].url}&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
+    <style>body { ${Object.entries(cores).map(([k, v]) => `${k}: ${v};`).join(" ")} }</style>
     <script src="/loja.js" defer></script>${extraHead}
 </head>
 <body data-tema="${ajustes.tema}" data-fonte="${ajustes.fonte}" data-foto-topo="${ajustes.foto_topo}" data-foto-produto="${ajustes.foto_produto}" data-colunas="${ajustes.colunas_celular}" data-zap="${zap ? "1" : ""}" data-moeda="${esc(ajustes.moeda)}">
