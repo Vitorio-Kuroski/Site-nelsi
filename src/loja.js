@@ -9,7 +9,6 @@
 // /sitemap.xml          páginas para o Google
 // Tudo o que muda (produtos, preços, WhatsApp, textos) é editado no painel e fica no banco D1.
 import { garantirTabelas } from "./contas.js";
-import { garantirTabelasVisitas } from "./visitas.js";
 
 const TABELAS = [
     `CREATE TABLE IF NOT EXISTS ajustes (chave TEXT PRIMARY KEY, valor TEXT NOT NULL DEFAULT '')`,
@@ -71,7 +70,6 @@ let prontas = false;
 export async function garantirTabelasLoja(db) {
     if (prontas) return;
     await garantirTabelas(db);
-    await garantirTabelasVisitas(db);
     await db.batch(TABELAS.map((sql) => db.prepare(sql)));
     const iniciado = await db.prepare("SELECT 1 FROM ajustes WHERE chave = 'iniciado'").first();
     if (!iniciado) {
@@ -465,7 +463,7 @@ export async function paginaPrivacidade(request, env) {
                 <p>Este site é de <strong>${esc(a.nome)}</strong>, revendedora independente. Aqui explico, de forma simples, o que acontece com os seus dados quando você visita o site. Esta política segue a LGPD.</p>
                 <h2>O que coletamos</h2>
                 <ul>
-                    <li><strong>Visitas:</strong> o site conta quantas vezes cada página foi aberta e de onde a pessoa veio (por exemplo Instagram ou Google), sem cookies e sem guardar o seu endereço IP. Para saber quantas pessoas diferentes visitaram no dia, usamos um código embaralhado que não identifica você e é apagado no dia seguinte.</li>
+                    <li><strong>Visitantes:</strong> o site não tem cadastro de visitantes, não usa cookies de publicidade nem de rastreamento e não guarda o seu endereço IP.</li>
                     <li><strong>Pedidos:</strong> quando você toca em "Pedir" ou envia a sacola, o site soma 1 ao total de pedidos daquele produto no dia (no máximo uma vez por pessoa), sem saber quem pediu. O pedido em si acontece no WhatsApp, entre você e a loja.</li>
                     <li><strong>Sacola:</strong> os produtos que você coloca na sacola ficam guardados só no seu próprio celular ou computador, até você enviar ou esvaziar.</li>
                     <li><strong>Painel:</strong> só a administradora tem conta (nome, e-mail e senha guardada com proteção), com o cookie <code>sessao</code>, necessário para entrar.</li>

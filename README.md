@@ -9,10 +9,11 @@ Loja de **Tupperware, perfumes e kits de beleza** com pedido pelo WhatsApp. Feit
 - **Sacola:** o cliente junta vários produtos e manda a lista com o total numa mensagem só. A sacola fica só no aparelho do cliente.
 - **Página de cada produto** (`/produto/<nome>/`), boa para o Google e para mandar no WhatsApp.
 - **Painel** (`/admin/`), feito para usar no celular:
-  - **Painel:** visitas, de onde vieram, pedidos por produto, com filtro de período.
+  - **Painel:** pedidos pelo WhatsApp e **relatório para repor o estoque** (mais pedidos e os que não tiveram nenhum pedido), com filtro de período e botão de copiar.
+  - **Cadastro rápido:** escolhe várias fotos de uma vez e só preenche nome e preço de cada uma.
   - **Produtos:** cadastrar com foto (direto da câmera), preço, categoria, descrição; botões rápidos de Esgotado, Destaque e No site; ordem do catálogo.
   - **Dados da loja:** WhatsApp, foto, textos, entrega, pagamento, categorias, moeda (R$ ou €) e redes.
-- Contagem de visitas e pedidos **sem cookies e sem guardar IP** (1 pedido por pessoa por produto por dia). Política de privacidade em `/privacidade/`.
+- Contagem de pedidos **sem cookies e sem guardar IP** (1 pedido por pessoa por produto por dia). O site não conta visitas. Política de privacidade em `/privacidade/`.
 - Aviso de revendedora independente no rodapé: o site não usa logos das marcas e não se apresenta como oficial.
 
 ## Publicar no Cloudflare

@@ -1,7 +1,7 @@
 // Painel da loja (só e-mails do segredo ADMIN_EMAILS).
 //
 //   GET    /api/admin/eu                    nome e e-mail de quem está logado
-//   GET    /api/admin/resumo?de=&ate=       visitas e pedidos no período, por produto
+//   GET    /api/admin/resumo?de=&ate=       pedidos no período, por produto, e os produtos sem nenhum pedido
 //   GET    /api/admin/produtos              produtos com os pedidos dos últimos 30 dias
 //   POST   /api/admin/produtos              cria { nome, slug, categoria, descricao, preco, preco_antigo, foto, destaque, esgotado, ativo }
 //   PUT    /api/admin/produtos/<id>         altera
@@ -12,7 +12,6 @@
 //   PUT    /api/admin/ajustes               salva os dados da loja
 //   POST   /api/admin/imagens               envia uma imagem (JPEG, PNG ou WebP até 1,8 MB) e devolve o endereço
 import { alunoLogado, ehAdmin, json } from "./contas.js";
-import { resumoVisitas } from "./visitas.js";
 import { AJUSTES_PADRAO, categoriasDe, garantirTabelasLoja, lerAjustes } from "./loja.js";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -170,11 +169,16 @@ async function resumo(url, db) {
                            COALESCE(SUM(CASE WHEN dia BETWEEN ?1 AND ?2 THEN n END), 0) AS periodo,
                            COALESCE(SUM(n), 0) AS total FROM pedidos`).bind(de, ate),
         db.prepare(`SELECT p.id, p.nome, p.ativo, p.esgotado, COALESCE(SUM(CASE WHEN c.dia BETWEEN ?1 AND ?2 THEN c.n END), 0) AS periodo
-                    FROM produtos p LEFT JOIN pedidos c ON c.produto_id = p.id GROUP BY p.id HAVING periodo > 0 ORDER BY periodo DESC LIMIT 20`).bind(de, ate),
+                    FROM produtos p LEFT JOIN pedidos c ON c.produto_id = p.id GROUP BY p.id HAVING periodo > 0 ORDER BY periodo DESC LIMIT 50`).bind(de, ate),
         db.prepare("SELECT dia, SUM(n) AS n FROM pedidos WHERE dia BETWEEN ?1 AND ?2 GROUP BY dia ORDER BY dia").bind(de, ate),
     ]);
+    const { results: semPedidos } = await db.prepare(
+        `SELECT p.id, p.nome, p.categoria, p.esgotado FROM produtos p
+         WHERE p.ativo = 1 AND date(p.criado_em) <= ?2
+           AND NOT EXISTS (SELECT 1 FROM pedidos c WHERE c.produto_id = p.id AND c.dia BETWEEN ?1 AND ?2)
+         ORDER BY p.categoria, p.nome`).bind(de, ate).all();
     const contagem = await db.prepare("SELECT COUNT(*) AS todos, COALESCE(SUM(ativo = 1 AND esgotado = 0), 0) AS a_venda, COALESCE(SUM(esgotado = 1), 0) AS esgotados FROM produtos").first();
-    return json({ ...totais.results[0], de, ate, produtos: porProduto.results, dias: dias.results, contagem, visitas: await resumoVisitas(db, de, ate) });
+    return json({ ...totais.results[0], de, ate, produtos: porProduto.results, sem_pedidos: semPedidos, dias: dias.results, contagem });
 }
 
 // ---------- Roteamento ----------

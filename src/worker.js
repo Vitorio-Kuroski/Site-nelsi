@@ -9,18 +9,14 @@
 // /sitemap.xml, /robots.txt
 // /api/conta/*           login do painel (src/contas.js)
 // /api/admin/*           painel (src/admin.js)
-// Toda página aberta por uma pessoa é contada em src/visitas.js (sem cookies e sem guardar IP).
 // O resto (estilos, scripts, login e o painel) vem da pasta public/.
 import { rotasAdmin } from "./admin.js";
 import { rotasConta } from "./contas.js";
-import { contarVisita, deveContar } from "./visitas.js";
 import { garantirTabelasLoja, imagem, paginaInicial, paginaPrivacidade, paginaProduto, pedir, sacola, sitemap } from "./loja.js";
 
 export default {
     async fetch(request, env, ctx) {
-        const resposta = await rotear(request, env, ctx);
-        if (deveContar(request, resposta)) ctx.waitUntil(contarVisita(request, env));
-        return resposta;
+        return rotear(request, env, ctx);
     },
 };
 

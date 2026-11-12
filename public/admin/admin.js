@@ -1,4 +1,4 @@
-// Painel da loja da Nelsi: Painel (visitas e pedidos), Produtos e Dados da loja.
+// Painel da loja da Nelsi: Painel (pedidos e relatório de estoque), Produtos e Dados da loja.
 // Conversa com as rotas /api/admin/* do Worker (src/admin.js). Navegação pelo endereço: #/, #/produtos, #/produtos/<id>, #/produtos/novo, #/loja.
 const conteudo = document.getElementById("conteudo");
 const titulo = document.querySelector(".adm-barra__titulo");
@@ -76,7 +76,7 @@ async function enviarImagem(arquivo, maximo = 1600) {
     return r.url;
 }
 
-// ---------- Painel (visitas e pedidos) ----------
+// ---------- Painel (pedidos e relatório) ----------
 
 const PERIODOS = {
     "7": "Últimos 7 dias",
@@ -103,9 +103,6 @@ function datasDoPeriodo({ tipo, de, ate }) {
     return { de: menos(29), ate: iso(hoje) };
 }
 
-const NOMES_PAGINAS = {
-    "/": "Página inicial (catálogo)", "/privacidade/": "Privacidade",
-};
 
 const dataBr = (d) => d.split("-").reverse().join("/");
 
@@ -122,13 +119,9 @@ async function paginaPainel() {
         return `<div class="adm-grafico ${lista.length > 45 ? "adm-grafico--denso" : ""}" role="img" aria-label="${rotulo} por dia">
             ${lista.map((d) => `<span title="${dataBr(d.dia)}: ${d.n}" style="height:${Math.max(2, (d.n / maior) * 100)}%"></span>`).join("")}</div>`;
     };
-    const barras = (itens, nome) => itens.length
-        ? `<ul class="adm-barras">${itens.map((o) => `<li><span>${esc(nome(o))}</span><strong>${o.n ?? o.periodo}</strong><i style="width:${((o.n ?? o.periodo) / (itens[0].n ?? itens[0].periodo)) * 100}%"></i></li>`).join("")}</ul>`
-        : '<p class="adm-vazio">Ainda nada no período.</p>';
-    const v = r.visitas;
     const rotuloPeriodo = `${dataBr(r.de)} a ${dataBr(r.ate)}`;
     conteudo.innerHTML = `
-        <div class="adm-cabeca"><h1>Painel<small>Quantas pessoas visitaram a loja e quantos pedidos foram para o WhatsApp. Suas próprias visitas (logada no painel) não contam.</small></h1>
+        <div class="adm-cabeca"><h1>Painel<small>Quantos pedidos foram para o WhatsApp e o que repor. Seus próprios testes (logada no painel) não contam.</small></h1>
             <div class="adm-acoes"><a class="adm-botao adm-botao--principal" href="#/produtos/novo">+ Novo produto</a></div></div>
         <div class="adm-cartoes">
             <div class="adm-cartao"><p class="adm-cartao__rotulo">Produtos à venda</p><p class="adm-cartao__valor">${r.contagem.a_venda}</p><p class="adm-cartao__nota">${r.contagem.esgotados} esgotados · ${r.contagem.todos} no total</p></div>
@@ -141,28 +134,27 @@ async function paginaPainel() {
                 <label class="campo">Até <input type="date" id="periodo-ate" value="${r.ate}"></label>
             </div>
         </section>
-        <h2 class="adm-titulo-secao">Pedidos pelo WhatsApp</h2>
         <div class="adm-cartoes">
             <div class="adm-cartao adm-cartao--verde"><p class="adm-cartao__rotulo">Pedidos no período</p><p class="adm-cartao__valor">${r.periodo}</p><p class="adm-cartao__nota">${rotuloPeriodo}</p></div>
             <div class="adm-cartao"><p class="adm-cartao__rotulo">Pedidos hoje</p><p class="adm-cartao__valor">${r.hoje}</p></div>
             <div class="adm-cartao"><p class="adm-cartao__rotulo">Desde o começo</p><p class="adm-cartao__valor">${r.total}</p></div>
         </div>
-        <div class="adm-duas">
-            <section class="adm-bloco"><div class="adm-bloco__cabeca"><h2>Mais pedidos</h2></div>${barras(r.produtos, (p) => p.nome)}</section>
-            <section class="adm-bloco"><div class="adm-bloco__cabeca"><h2>Pedidos por dia</h2></div>${grafico(serie(r.dias), "Pedidos")}</section>
-        </div>
+        <section class="adm-bloco"><div class="adm-bloco__cabeca"><h2>Pedidos por dia</h2></div>${grafico(serie(r.dias), "Pedidos")}</section>
         <p class="adm-form__dica">Cada pessoa conta 1 pedido por produto por dia, quando toca em "Pedir" ou envia a sacola. A venda em si é combinada no WhatsApp.</p>
-        <h2 class="adm-titulo-secao">Visitas ao site</h2>
-        <div class="adm-cartoes">
-            <div class="adm-cartao adm-cartao--verde"><p class="adm-cartao__rotulo">Visitas no período</p><p class="adm-cartao__valor">${v.visitas}</p><p class="adm-cartao__nota">páginas abertas</p></div>
-            <div class="adm-cartao"><p class="adm-cartao__rotulo">Pessoas no período</p><p class="adm-cartao__valor">${v.pessoas}</p><p class="adm-cartao__nota">soma das pessoas diferentes de cada dia</p></div>
-            <div class="adm-cartao"><p class="adm-cartao__rotulo">Visitas hoje</p><p class="adm-cartao__valor">${v.visitas_hoje}</p><p class="adm-cartao__nota">${v.pessoas_hoje} ${v.pessoas_hoje === 1 ? "pessoa" : "pessoas"}</p></div>
-        </div>
-        <section class="adm-bloco"><div class="adm-bloco__cabeca"><h2>Visitas por dia</h2></div>${grafico(serie(v.dias), "Visitas")}</section>
-        <div class="adm-duas">
-            <section class="adm-bloco"><div class="adm-bloco__cabeca"><h2>De onde vieram</h2></div>${barras(v.origens, (o) => o.origem)}</section>
-            <section class="adm-bloco"><div class="adm-bloco__cabeca"><h2>Páginas mais vistas</h2></div>${barras(v.paginas, (p) => NOMES_PAGINAS[p.pagina] || p.pagina.replace(/^\/produto\/(.+)\/$/, "Produto: $1"))}</section>
-        </div>`;
+        <section class="adm-bloco adm-relatorio">
+            <div class="adm-bloco__cabeca"><h2>Relatório para repor o estoque</h2><button type="button" class="adm-botao" id="copiar-relatorio">Copiar relatório</button></div>
+            <p class="adm-form__dica adm-relatorio__dica">${rotuloPeriodo}. Para o fechamento do mês, escolha "Mês passado" no período.</p>
+            <div class="adm-duas adm-relatorio__listas">
+                <div><h3>Mais pedidos</h3>${r.produtos.length ? `<ol class="adm-lista">${r.produtos.map((p) => `<li><span>${esc(p.nome)}${p.esgotado ? ' <span class="adm-selo adm-selo--cinza">Esgotado</span>' : ""}</span><strong>${p.periodo}</strong></li>`).join("")}</ol>` : '<p class="adm-vazio">Nenhum pedido no período.</p>'}</div>
+                <div><h3>Nenhum pedido no período (${r.sem_pedidos.length})</h3>${r.sem_pedidos.length ? `<ul class="adm-lista">${r.sem_pedidos.map((p) => `<li><a href="#/produtos/${p.id}">${esc(p.nome)}</a><small>${esc(p.categoria || "")}</small></li>`).join("")}</ul>` : '<p class="adm-vazio">Todos os produtos tiveram pedido. 🎉</p>'}</div>
+            </div>
+        </section>`;
+    document.getElementById("copiar-relatorio").addEventListener("click", async (e) => {
+        const texto = `Relatório da loja · ${rotuloPeriodo}\n\nMais pedidos:\n${r.produtos.map((p, i) => `${i + 1}. ${p.nome}: ${p.periodo}${p.esgotado ? " (esgotado)" : ""}`).join("\n") || "nenhum"}\n\nNenhum pedido no período:\n${r.sem_pedidos.map((p) => `- ${p.nome}`).join("\n") || "nenhum"}`;
+        const botao = e.currentTarget;
+        try { await navigator.clipboard.writeText(texto); botao.textContent = "Copiado ✓"; setTimeout(() => { botao.textContent = "Copiar relatório"; }, 1800); }
+        catch { prompt("Copie o texto:", texto); }
+    });
     document.getElementById("periodo").addEventListener("change", (e) => {
         periodoPainel = { ...periodoPainel, tipo: e.target.value };
         if (e.target.value === "outro") { periodoPainel.de = r.de; periodoPainel.ate = r.ate; conteudo.querySelector(".adm-periodo__datas").hidden = false; return; }
@@ -187,7 +179,7 @@ async function paginaProdutos(mensagem = "", tipo = "ok") {
     conteudo.innerHTML = `
         ${aviso(mensagem, tipo)}
         <div class="adm-cabeca"><h1>Produtos<small>Aparecem no catálogo nesta ordem. Os botões rápidos mudam na hora: <b>Esgotado</b>, <b>Destaque</b> e <b>No site</b>.</small></h1>
-            <div class="adm-acoes"><a class="adm-botao adm-botao--principal" href="#/produtos/novo">+ Novo produto</a></div></div>
+            <div class="adm-acoes"><a class="adm-botao" href="#/produtos/lote">Cadastro rápido (várias fotos)</a><a class="adm-botao adm-botao--principal" href="#/produtos/novo">+ Novo produto</a></div></div>
         <section class="adm-bloco">
             ${produtos.length ? `<div class="adm-bloco__cabeca"><input type="search" class="adm-busca" id="filtro" placeholder="Procurar produto…" value="${esc(filtroProdutos)}"></div>
             <table class="adm-tabela adm-tabela--aulas">
@@ -352,6 +344,120 @@ async function paginaProdutoForm(id, mensagem = "", tipo = "ok") {
     });
 }
 
+// ---------- Cadastro rápido (várias fotos de uma vez) ----------
+
+async function paginaLote() {
+    titulo.textContent = "Cadastro rápido";
+    const { categorias, moeda } = await api("/api/admin/produtos");
+    moedaLoja = moeda;
+    const simbolo = moeda === "EUR" ? "€" : "R$";
+    const itens = []; // { id, foto, status, erro }
+    let seq = 0;
+    conteudo.innerHTML = `
+        <div class="adm-cabeca"><h1>Cadastro rápido<small>Escolha várias fotos de uma vez. Depois é só escrever o nome e o preço de cada produto e cadastrar todos juntos.</small></h1>
+            <div class="adm-acoes"><a class="adm-botao" href="#/produtos">${ICONES.voltar}Produtos</a></div></div>
+        <section class="adm-bloco adm-form">
+            <div class="adm-lote__topo">
+                <label class="adm-botao adm-botao--principal adm-lote__escolher">Escolher fotos<input type="file" accept="image/*" multiple id="fotos" hidden></label>
+                <label class="campo">Categoria para as próximas fotos
+                    <select id="cat-padrao"><option value="">Sem categoria</option>${categorias.map((c) => `<option>${esc(c)}</option>`).join("")}</select></label>
+            </div>
+            <p class="adm-form__dica" id="lote-status" role="status">No celular, dá para escolher várias fotos da galeria de uma vez.</p>
+        </section>
+        <div class="adm-lote" id="lote"></div>
+        <div class="adm-lote__rodape" id="lote-rodape" hidden>
+            <button type="button" class="adm-botao adm-botao--principal" id="cadastrar"></button>
+            <span class="adm-form__dica" id="cadastrar-status" role="status"></span>
+        </div>`;
+    const lista = document.getElementById("lote");
+    const status = document.getElementById("lote-status");
+    const pendentes = () => itens.filter((i) => i.status !== "salvo");
+    formularioSujo = () => pendentes().some((i) => i.foto);
+    const atualizarRodape = () => {
+        const n = pendentes().filter((i) => i.foto).length;
+        document.getElementById("lote-rodape").hidden = n === 0;
+        document.getElementById("cadastrar").textContent = `Cadastrar ${n} ${n === 1 ? "produto" : "produtos"}`;
+    };
+    const cartao = (i) => `
+        <article class="adm-lote__item" data-item="${i.id}">
+            <img src="${esc(i.foto)}" alt="">
+            <div class="adm-lote__campos">
+                <label class="campo">Nome<input data-c="nome" maxlength="100" placeholder="Nome do produto"></label>
+                <div class="adm-duas-colunas">
+                    <label class="campo">Preço (${simbolo})<input data-c="preco" inputmode="decimal" placeholder="89,90"></label>
+                    <label class="campo">Categoria<select data-c="categoria"><option value="">Sem categoria</option>${categorias.map((c) => `<option ${c === i.categoria ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
+                </div>
+                <p class="conta__erro" data-erro hidden></p>
+            </div>
+            <button type="button" class="adm-mini adm-mini--neutro adm-lote__tirar" data-tirar aria-label="Tirar esta foto">✕</button>
+        </article>`;
+
+    document.getElementById("fotos").addEventListener("change", async (e) => {
+        const arquivos = [...e.target.files];
+        e.target.value = "";
+        const categoria = document.getElementById("cat-padrao").value;
+        let n = 0;
+        for (const arquivo of arquivos) {
+            n++;
+            status.textContent = `Enviando foto ${n} de ${arquivos.length}…`;
+            try {
+                const item = { id: ++seq, foto: await enviarImagem(arquivo, 1200), categoria, status: "novo" };
+                itens.push(item);
+                lista.insertAdjacentHTML("beforeend", cartao(item));
+                atualizarRodape();
+            } catch (falha) {
+                status.textContent = `Foto ${n}: ${falha.message}`;
+                await new Promise((ok) => setTimeout(ok, 1200));
+            }
+        }
+        status.textContent = `${arquivos.length} ${arquivos.length === 1 ? "foto enviada" : "fotos enviadas"}. Agora escreva o nome e o preço de cada uma.`;
+        lista.querySelector(".adm-lote__item:not(.salvo) [data-c=nome]")?.focus();
+    });
+
+    lista.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-tirar]");
+        if (!b) return;
+        const art = b.closest("[data-item]");
+        const i = itens.find((x) => x.id === Number(art.dataset.item));
+        i.status = "salvo"; i.foto = "";
+        art.remove();
+        atualizarRodape();
+    });
+
+    document.getElementById("cadastrar").addEventListener("click", async (e) => {
+        const botao = e.currentTarget;
+        const st = document.getElementById("cadastrar-status");
+        botao.disabled = true;
+        let ok = 0, falhas = 0;
+        for (const i of pendentes().filter((x) => x.foto)) {
+            const art = lista.querySelector(`[data-item="${i.id}"]`);
+            const erro = art.querySelector("[data-erro]");
+            const v = (c) => art.querySelector(`[data-c=${c}]`).value;
+            erro.hidden = true;
+            if (!v("nome").trim()) { erro.textContent = "Falta o nome."; erro.hidden = false; falhas++; continue; }
+            const base = slugDe(v("nome")) || "produto";
+            let salvo = false;
+            for (let tentativa = 1; tentativa <= 9 && !salvo; tentativa++) {
+                const corpo = { nome: v("nome"), slug: tentativa === 1 ? base : `${base}-${tentativa}`, preco: v("preco"), categoria: v("categoria"), foto: i.foto, ativo: true };
+                try {
+                    await api("/api/admin/produtos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+                    salvo = true;
+                } catch (falha) {
+                    if (falha.status === 409) continue;
+                    erro.textContent = falha.message; erro.hidden = false; break;
+                }
+            }
+            if (salvo) { ok++; i.status = "salvo"; art.classList.add("salvo"); art.querySelectorAll("input, select, button").forEach((x) => { x.disabled = true; }); }
+            else falhas++;
+            st.textContent = `${ok} cadastrados…`;
+        }
+        botao.disabled = false;
+        atualizarRodape();
+        st.textContent = falhas ? `${ok} cadastrados. ${falhas} ${falhas === 1 ? "precisa" : "precisam"} de correção (veja em vermelho).` : `Pronto: ${ok} ${ok === 1 ? "produto cadastrado" : "produtos cadastrados"}. Já estão no site.`;
+        if (!falhas && ok) lista.insertAdjacentHTML("afterend", '<p class="adm-aviso adm-aviso--ok" id="lote-fim">Tudo cadastrado. <a href="#/produtos">Ver a lista de produtos</a> ou escolha mais fotos acima.</p>');
+    });
+}
+
 // ---------- Dados da loja ----------
 
 async function paginaLoja(mensagem = "", tipo = "ok") {
@@ -446,11 +552,12 @@ async function mostrar() {
     hashAtual = location.hash;
     const caminho = location.hash.replace(/^#/, "") || "/";
     const produto = /^\/produtos\/(novo|\d+)$/.exec(caminho);
-    const pagina = caminho === "/produtos/novo" ? "novo" : caminho.startsWith("/produtos") ? "produtos" : caminho.startsWith("/loja") ? "loja" : "painel";
+    const pagina = caminho === "/produtos/novo" ? "novo" : caminho === "/produtos/lote" ? "lote" : caminho.startsWith("/produtos") ? "produtos" : caminho.startsWith("/loja") ? "loja" : "painel";
     document.querySelectorAll(".adm-menu__nav a[data-pagina]").forEach((a) => a.classList.toggle("ativo", a.dataset.pagina === pagina));
     abrirMenu(false);
     try {
         if (produto) { const msg = avisoPendente; avisoPendente = ""; await paginaProdutoForm(produto[1], msg, "ok"); }
+        else if (caminho === "/produtos/lote") await paginaLote();
         else if (caminho === "/produtos") await paginaProdutos();
         else if (caminho === "/loja") await paginaLoja();
         else await paginaPainel();
