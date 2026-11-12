@@ -57,7 +57,7 @@ export const AJUSTES_PADRAO = {
     apresentacao: "Oi, eu sou a Nelsi! Aqui você encontra Tupperware, perfumes e kits de beleza para você ou para presentear. Escolha o que gostou e me chame no WhatsApp que eu te atendo pessoalmente.",
     whatsapp: "",
     cidade: "Curitiba",
-    entrega: "Entrego em Curitiba e região. Combine o dia e o local comigo pelo WhatsApp.",
+    entrega: "Atendo Curitiba e região. Combine o dia e o local comigo pelo WhatsApp.",
     pagamento: "Pix, dinheiro ou cartão.",
     instagram: "",
     facebook: "",
@@ -299,7 +299,7 @@ export async function paginaInicial(request, env) {
                 <ol class="passos">
                     <li><span>1</span><strong>Escolha</strong><p>Toque em <b>Pedir</b> no produto, ou junte vários na <b>sacola</b>.</p></li>
                     <li><span>2</span><strong>Me chame no WhatsApp</strong><p>A mensagem já vai pronta com o que você escolheu. Eu confirmo se tem e o valor.</p></li>
-                    <li><span>3</span><strong>Combine a entrega</strong><p>${esc(a.entrega)}</p></li>
+                    <li><span>3</span><strong>Combine o dia e o local</strong><p>${esc(a.entrega)}</p></li>
                 </ol>
                 <p class="pagamento"><strong>Pagamento:</strong> ${esc(a.pagamento)}</p>
             </div>

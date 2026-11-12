@@ -381,7 +381,7 @@ async function paginaLoja(mensagem = "", tipo = "ok") {
             </div>
             ${campo("slogan", "Frase de baixo do nome", "até 80 caracteres", 'maxlength="80"')}
             ${area("apresentacao", "Apresentação", "o texto do topo da página inicial")}
-            ${area("entrega", "Entrega", "aparece em \"Como comprar\" e em cada produto", 300)}
+            ${area("entrega", "Onde atende", "aparece em \"Como comprar\" e em cada produto", 300)}
             ${campo("pagamento", "Formas de pagamento", "", 'maxlength="160"')}
             ${area("categorias", "Categorias", "uma por linha, na ordem dos filtros do catálogo", 900)}
             <label class="campo">Moeda <select name="moeda"><option value="BRL" ${a.moeda !== "EUR" ? "selected" : ""}>Real (R$)</option><option value="EUR" ${a.moeda === "EUR" ? "selected" : ""}>Euro (€)</option></select></label>
