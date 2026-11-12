@@ -81,9 +81,37 @@ export async function garantirTabelasLoja(db) {
     prontas = true;
 }
 
+// Aparência (tela "Aparência" do painel). Fica separada dos dados da loja e pode voltar ao original.
+export const APARENCIA_PADRAO = {
+    tema: "vinho",
+    fonte: "elegante",
+    logo: "",
+    banner_texto: "",
+    banner_ate: "",
+    mostrar_destaques: "1",
+    mostrar_como_comprar: "1",
+    mostrar_pagamento: "1",
+};
+export const TEMAS = {
+    vinho: { nome: "Vinho", cor: "#8E2445" },
+    rosa: { nome: "Rosa", cor: "#C2407A" },
+    lilas: { nome: "Lilás", cor: "#6E4BA8" },
+    oliva: { nome: "Verde-oliva", cor: "#5E6B2E" },
+    preto: { nome: "Preto e dourado", cor: "#1F1B1A" },
+    marinho: { nome: "Azul-marinho", cor: "#1F3A68" },
+};
+export const FONTES = {
+    elegante: { nome: "Elegante", url: "family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800" },
+    moderna: { nome: "Moderna", url: "family=Poppins:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800" },
+    delicada: { nome: "Delicada", url: "family=Dancing+Script:wght@600;700&family=Nunito+Sans:wght@400;600;700;800" },
+};
+
 export async function lerAjustes(db) {
     const { results } = await db.prepare("SELECT chave, valor FROM ajustes").all();
-    return { ...AJUSTES_PADRAO, ...Object.fromEntries(results.map((r) => [r.chave, r.valor])) };
+    const a = { ...AJUSTES_PADRAO, ...APARENCIA_PADRAO, ...Object.fromEntries(results.map((r) => [r.chave, r.valor])) };
+    if (!TEMAS[a.tema]) a.tema = APARENCIA_PADRAO.tema;
+    if (!FONTES[a.fonte]) a.fonte = APARENCIA_PADRAO.fonte;
+    return a;
 }
 
 export const categoriasDe = (a) => String(a.categorias || "").split("\n").map((c) => c.trim()).filter(Boolean);
@@ -133,6 +161,9 @@ export function pagina(request, ajustes, { titulo, descricao, conteudo, status =
     const foto = imagemPagina || ajustes.foto;
     const imagem = foto ? new URL(foto, url.origin).toString() : "";
     const zap = numeroZap(ajustes);
+    const hoje = new Date().toISOString().slice(0, 10);
+    const banner = ajustes.banner_texto && (!ajustes.banner_ate || ajustes.banner_ate >= hoje)
+        ? `\n    <p class="banner">${esc(ajustes.banner_texto)}</p>` : "";
     const redes = [["instagram", "Instagram", ajustes.instagram], ["facebook", "Facebook", ajustes.facebook]]
         .filter(([, , l]) => /^https:\/\//.test(l || ""))
         .map(([k, rotulo, l]) => `<a class="rede" href="${esc(l)}" target="_blank" rel="noopener" aria-label="${rotulo}" title="${rotulo}">${ICONES[k]}</a>`).join("");
@@ -141,7 +172,7 @@ export function pagina(request, ajustes, { titulo, descricao, conteudo, status =
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#8E2445">
+    <meta name="theme-color" content="${TEMAS[ajustes.tema].cor}">
     <title>${esc(tituloCompleto)}</title>
     <meta name="description" content="${esc(descricao)}">${indexar ? "" : '\n    <meta name="robots" content="noindex">'}
     <link rel="canonical" href="${url.origin}${url.pathname}">
@@ -153,18 +184,18 @@ export function pagina(request, ajustes, { titulo, descricao, conteudo, status =
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?${FONTES[ajustes.fonte].url}&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <script src="/loja.js" defer></script>${extraHead}
 </head>
-<body data-zap="${zap ? "1" : ""}" data-moeda="${esc(ajustes.moeda)}">
-    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<body data-tema="${ajustes.tema}" data-fonte="${ajustes.fonte}" data-zap="${zap ? "1" : ""}" data-moeda="${esc(ajustes.moeda)}">
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>${banner}
     <header class="topo">
         <div class="caixa topo__linha">
-            <a href="/" class="marca" aria-label="${esc(nome)}, página inicial"><span class="marca__nome">${esc(nome)}</span><span class="marca__sub">${esc(ajustes.slogan)}</span></a>
+            <a href="/" class="marca" aria-label="${esc(nome)}, página inicial">${ajustes.logo ? `<img class="marca__logo" src="${esc(ajustes.logo)}" alt="${esc(nome)}">` : `<span class="marca__nome">${esc(nome)}</span><span class="marca__sub">${esc(ajustes.slogan)}</span>`}</a>
             <nav class="menu" aria-label="Menu principal">
                 <a href="/#catalogo">Catálogo</a>
-                <a href="/#como-comprar">Como comprar</a>
+                ${ajustes.mostrar_como_comprar === "1" ? '<a href="/#como-comprar">Como comprar</a>' : ""}
             </nav>
             ${zap ? `<a class="botao botao--zap botao--pequeno" href="${esc(linkZap(ajustes, `Oi ${primeiroNome(ajustes)}! Vim pelo site.`))}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>WhatsApp</span></a>` : ""}
         </div>
@@ -264,7 +295,7 @@ export async function paginaInicial(request, env) {
             </div>
         </section>
 
-        ${destaques.length ? `<section class="secao" id="destaques">
+        ${destaques.length && a.mostrar_destaques === "1" ? `<section class="secao" id="destaques">
             <div class="caixa">
                 <h2 class="secao__titulo">Destaques e <em>promoções</em></h2>
                 <div class="produtos produtos--linha">${destaques.map((p) => cartaoProduto(p, a)).join("")}
@@ -291,7 +322,7 @@ export async function paginaInicial(request, env) {
             </div>
         </section>
 
-        <section class="secao" id="como-comprar">
+        ${a.mostrar_como_comprar === "1" ? `<section class="secao" id="como-comprar">
             <div class="caixa">
                 <h2 class="secao__titulo">Como <em>comprar</em></h2>
                 <ol class="passos">
@@ -299,9 +330,9 @@ export async function paginaInicial(request, env) {
                     <li><span>2</span><strong>Me chame no WhatsApp</strong><p>A mensagem já vai pronta com o que você escolheu. Eu confirmo se tem e o valor.</p></li>
                     <li><span>3</span><strong>Combine o dia e o local</strong><p>${esc(a.entrega)}</p></li>
                 </ol>
-                <p class="pagamento"><strong>Pagamento:</strong> ${esc(a.pagamento)}</p>
+                ${a.mostrar_pagamento === "1" && a.pagamento ? `<p class="pagamento"><strong>Pagamento:</strong> ${esc(a.pagamento)}</p>` : ""}
             </div>
-        </section>`,
+        </section>` : a.mostrar_pagamento === "1" && a.pagamento ? `<section class="secao"><div class="caixa"><p class="pagamento"><strong>Pagamento:</strong> ${esc(a.pagamento)}</p></div></section>` : ""}`,
     });
 }
 

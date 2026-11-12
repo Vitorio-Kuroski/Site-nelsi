@@ -50,7 +50,7 @@ function slugDe(texto) {
 }
 
 // Reduz a imagem no navegador antes de enviar (logos e foto ficam leves)
-async function reduzirImagem(arquivo, maximo = 1600) {
+async function reduzirImagem(arquivo, maximo = 1600, transparente = false) {
     if (!/^image\/(jpeg|png|webp|heic|heif|gif)$/i.test(arquivo.type) && !/\.(jpe?g|png|webp|heic|heif)$/i.test(arquivo.name)) {
         throw new Error("Escolha uma imagem (JPG, PNG ou WebP).");
     }
@@ -61,17 +61,19 @@ async function reduzirImagem(arquivo, maximo = 1600) {
     tela.width = Math.round(bitmap.width * escala);
     tela.height = Math.round(bitmap.height * escala);
     const ctx = tela.getContext("2d");
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, tela.width, tela.height);
+    if (!transparente) { // fotos: fundo branco; logo: mantém o fundo transparente
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, tela.width, tela.height);
+    }
     ctx.drawImage(bitmap, 0, 0, tela.width, tela.height);
     const gerar = (tipo, qualidade) => new Promise((ok) => tela.toBlob(ok, tipo, qualidade));
     let blob = await gerar("image/webp", 0.82);
-    if (!blob || blob.type !== "image/webp") blob = await gerar("image/jpeg", 0.85);
+    if (!blob || blob.type !== "image/webp") blob = await gerar(transparente ? "image/png" : "image/jpeg", 0.85);
     return blob;
 }
 
-async function enviarImagem(arquivo, maximo = 1600) {
-    const blob = await reduzirImagem(arquivo, maximo);
+async function enviarImagem(arquivo, maximo = 1600, transparente = false) {
+    const blob = await reduzirImagem(arquivo, maximo, transparente);
     const r = await api("/api/admin/imagens", { method: "POST", headers: { "Content-Type": blob.type }, body: blob });
     return r.url;
 }
@@ -458,6 +460,109 @@ async function paginaLote() {
     });
 }
 
+// ---------- Aparência ----------
+
+const FUNDOS_TEMA = { vinho: "#FBF6F1", rosa: "#FFF7FA", lilas: "#FAF7FD", oliva: "#FAF8F1", preto: "#FBF8F3", marinho: "#F7F9FC" };
+const FAMILIAS_FONTE = { elegante: "'Playfair Display', Georgia, serif", moderna: "'Poppins', system-ui, sans-serif", delicada: "'Dancing Script', cursive" };
+
+async function paginaAparencia(mensagem = "", tipo = "ok") {
+    titulo.textContent = "Aparência";
+    const a = await api("/api/admin/aparencia");
+    conteudo.innerHTML = `
+        ${aviso(mensagem, tipo)}
+        <div class="adm-cabeca"><h1>Aparência<small>Cores, letras, logo, faixa de aviso e o que aparece na página inicial. Se não gostar, "Voltar ao original" desfaz tudo.</small></h1>
+            <div class="adm-acoes"><a class="adm-botao" href="/" target="_blank" rel="noopener">Ver o site</a></div></div>
+        <form class="adm-bloco adm-form" id="form-aparencia" novalidate>
+            <fieldset class="adm-escolhas"><legend>Cores</legend>
+                ${Object.entries(a.temas).map(([k, t]) => `<label class="adm-escolha adm-escolha--tema">
+                    <input type="radio" name="tema" value="${k}" ${a.tema === k ? "checked" : ""}>
+                    <span class="adm-escolha__amostra" style="background:${FUNDOS_TEMA[k]}"><i style="background:${t.cor}"></i><b style="color:${t.cor}">Aa</b></span>
+                    <span>${esc(t.nome)}</span></label>`).join("")}
+            </fieldset>
+            <fieldset class="adm-escolhas"><legend>Letras dos títulos</legend>
+                ${Object.entries(a.fontes).map(([k, nome]) => `<label class="adm-escolha adm-escolha--fonte">
+                    <input type="radio" name="fonte" value="${k}" ${a.fonte === k ? "checked" : ""}>
+                    <span class="adm-escolha__amostra" style="font-family:${FAMILIAS_FONTE[k]}">${esc(a.nome)}</span>
+                    <span>${esc(nome)}</span></label>`).join("")}
+            </fieldset>
+            <div class="campo">Logo <span class="adm-form__dica">sem logo, o topo mostra o nome da loja escrito; use imagem com fundo transparente ou branco</span>
+                <div class="adm-capa">
+                    <img id="logo-previa" class="adm-logo-loja" alt="" ${a.logo ? `src="${esc(a.logo)}"` : "hidden"}>
+                    <div class="adm-capa__acoes">
+                        <label class="adm-botao">${a.logo ? "Trocar logo" : "Enviar logo"}<input type="file" accept="image/*" id="logo-arquivo" hidden></label>
+                        <button type="button" class="adm-botao" id="logo-tirar" ${a.logo ? "" : "hidden"}>Usar o nome escrito</button>
+                        <span class="adm-form__dica" id="logo-status" role="status"></span>
+                    </div>
+                </div>
+            </div>
+            <h3 class="adm-form__titulo">Faixa de aviso no topo <span class="adm-form__dica">em branco, a faixa some</span></h3>
+            <label class="campo">Texto<input name="banner_texto" maxlength="140" value="${esc(a.banner_texto)}" placeholder="Ex.: Promoção de Natal: kits com 20% off até dia 20!"></label>
+            <label class="campo adm-form__data">Mostrar até <span class="adm-form__dica">opcional: no dia seguinte a faixa some sozinha</span><input type="date" name="banner_ate" value="${esc(a.banner_ate)}"></label>
+            <fieldset class="adm-marcas"><legend>Seções da página inicial</legend>
+                <label class="adm-check"><input type="checkbox" name="mostrar_destaques" ${a.mostrar_destaques === "1" ? "checked" : ""}> Destaques e promoções</label>
+                <label class="adm-check"><input type="checkbox" name="mostrar_como_comprar" ${a.mostrar_como_comprar === "1" ? "checked" : ""}> Como comprar</label>
+                <label class="adm-check"><input type="checkbox" name="mostrar_pagamento" ${a.mostrar_pagamento === "1" ? "checked" : ""}> Formas de pagamento</label>
+            </fieldset>
+            <p class="conta__erro" id="erro" role="alert" hidden></p>
+            <div class="adm-form__acoes">
+                <button type="submit" class="adm-botao adm-botao--principal">Salvar</button>
+                <button type="button" class="adm-botao adm-botao--perigo" id="original">Voltar ao original</button>
+            </div>
+        </form>`;
+    const form = document.getElementById("form-aparencia");
+    let logo = a.logo;
+    let sujo = false;
+    form.addEventListener("input", () => { sujo = true; });
+    form.addEventListener("change", () => { sujo = true; });
+    formularioSujo = () => sujo;
+    const previa = document.getElementById("logo-previa");
+    document.getElementById("logo-arquivo").addEventListener("change", async (e) => {
+        const arquivo = e.target.files[0];
+        e.target.value = "";
+        if (!arquivo) return;
+        const status = document.getElementById("logo-status");
+        status.textContent = "Enviando…";
+        try {
+            logo = await enviarImagem(arquivo, 600, true);
+            previa.src = logo; previa.hidden = false;
+            document.getElementById("logo-tirar").hidden = false;
+            status.textContent = "Logo enviado. Salve para aplicar.";
+            sujo = true;
+        } catch (falha) {
+            status.textContent = falha.message;
+        }
+    });
+    document.getElementById("logo-tirar").addEventListener("click", (e) => {
+        logo = ""; previa.hidden = true; e.currentTarget.hidden = true;
+        document.getElementById("logo-status").textContent = "O topo vai mostrar o nome escrito. Salve para aplicar.";
+        sujo = true;
+    });
+    const salvar = async (corpo, msg) => {
+        const erro = document.getElementById("erro");
+        erro.hidden = true;
+        try {
+            await api("/api/admin/aparencia", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+            sujo = false;
+            await paginaAparencia(msg, "ok");
+        } catch (falha) {
+            erro.textContent = falha.message;
+            erro.hidden = false;
+        }
+    };
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        salvar({
+            tema: form.tema.value, fonte: form.fonte.value, logo,
+            banner_texto: form.banner_texto.value, banner_ate: form.banner_ate.value,
+            mostrar_destaques: form.mostrar_destaques.checked, mostrar_como_comprar: form.mostrar_como_comprar.checked, mostrar_pagamento: form.mostrar_pagamento.checked,
+        }, "Salvo. Abra o site para ver como ficou.");
+    });
+    document.getElementById("original").addEventListener("click", () => {
+        if (!confirm("Voltar a aparência ao original? Cores, letras, logo, faixa de aviso e seções voltam ao padrão. Produtos e textos da loja não mudam.")) return;
+        salvar({ original: true }, "Pronto: a aparência voltou ao original.");
+    });
+}
+
 // ---------- Dados da loja ----------
 
 async function paginaLoja(mensagem = "", tipo = "ok") {
@@ -552,7 +657,7 @@ async function mostrar() {
     hashAtual = location.hash;
     const caminho = location.hash.replace(/^#/, "") || "/";
     const produto = /^\/produtos\/(novo|\d+)$/.exec(caminho);
-    const pagina = caminho === "/produtos/novo" ? "novo" : caminho === "/produtos/lote" ? "lote" : caminho.startsWith("/produtos") ? "produtos" : caminho.startsWith("/loja") ? "loja" : "painel";
+    const pagina = caminho === "/produtos/novo" ? "novo" : caminho === "/produtos/lote" ? "lote" : caminho.startsWith("/produtos") ? "produtos" : caminho.startsWith("/loja") ? "loja" : caminho.startsWith("/aparencia") ? "aparencia" : "painel";
     document.querySelectorAll(".adm-menu__nav a[data-pagina]").forEach((a) => a.classList.toggle("ativo", a.dataset.pagina === pagina));
     abrirMenu(false);
     try {
@@ -560,6 +665,7 @@ async function mostrar() {
         else if (caminho === "/produtos/lote") await paginaLote();
         else if (caminho === "/produtos") await paginaProdutos();
         else if (caminho === "/loja") await paginaLoja();
+        else if (caminho === "/aparencia") await paginaAparencia();
         else await paginaPainel();
         scrollTo(0, 0);
     } catch (falha) {

@@ -8,11 +8,13 @@
 //   PATCH  /api/admin/produtos/<id>         muda só { esgotado } ou { ativo } ou { destaque } (botões rápidos da lista)
 //   DELETE /api/admin/produtos/<id>         apaga (e os pedidos contados dele)
 //   POST   /api/admin/produtos/ordem        { ids: [...] } nova ordem
+//   GET    /api/admin/aparencia             tema, fonte, logo, faixa de aviso e seções da página inicial
+//   PUT    /api/admin/aparencia             salva ({ original: true } volta tudo ao original)
 //   GET    /api/admin/ajustes               dados da loja
 //   PUT    /api/admin/ajustes               salva os dados da loja
 //   POST   /api/admin/imagens               envia uma imagem (JPEG, PNG ou WebP até 1,8 MB) e devolve o endereço
 import { alunoLogado, ehAdmin, json } from "./contas.js";
-import { AJUSTES_PADRAO, categoriasDe, garantirTabelasLoja, lerAjustes } from "./loja.js";
+import { AJUSTES_PADRAO, APARENCIA_PADRAO, FONTES, TEMAS, categoriasDe, garantirTabelasLoja, lerAjustes } from "./loja.js";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const URL_OK = /^https:\/\/[^\s"'<>]+$/;
@@ -157,6 +159,26 @@ async function salvarAjustes(request, db) {
     return json({ ok: true });
 }
 
+// ---------- Aparência ----------
+
+async function salvarAparencia(request, db) {
+    let d;
+    try { d = await request.json(); } catch { return json({ erro: "Dados inválidos." }, 400); }
+    const a = d?.original ? { ...APARENCIA_PADRAO } : {
+        tema: TEMAS[d?.tema] ? d.tema : APARENCIA_PADRAO.tema,
+        fonte: FONTES[d?.fonte] ? d.fonte : APARENCIA_PADRAO.fonte,
+        logo: String(d?.logo ?? "").trim(),
+        banner_texto: String(d?.banner_texto ?? "").trim().slice(0, 140),
+        banner_ate: /^\d{4}-\d{2}-\d{2}$/.test(d?.banner_ate || "") ? d.banner_ate : "",
+        mostrar_destaques: d?.mostrar_destaques ? "1" : "0",
+        mostrar_como_comprar: d?.mostrar_como_comprar ? "1" : "0",
+        mostrar_pagamento: d?.mostrar_pagamento ? "1" : "0",
+    };
+    if (a.logo && !IMAGEM_OK.test(a.logo)) return json({ erro: "Logo inválido. Envie pelo botão." }, 422);
+    await db.batch(Object.entries(a).map(([k, v]) => db.prepare("INSERT OR REPLACE INTO ajustes (chave, valor) VALUES (?, ?)").bind(k, v)));
+    return json({ ok: true });
+}
+
 // ---------- Resumo ----------
 
 async function resumo(url, db) {
@@ -205,5 +227,11 @@ export async function rotasAdmin(request, env) {
         return json(Object.fromEntries(Object.keys(AJUSTES_PADRAO).map((k) => [k, a[k]])));
     }
     if (url.pathname === "/api/admin/ajustes" && metodo === "PUT") return salvarAjustes(request, db);
+    if (url.pathname === "/api/admin/aparencia" && metodo === "GET") {
+        const a = await lerAjustes(db);
+        return json({ ...Object.fromEntries(Object.keys(APARENCIA_PADRAO).map((k) => [k, a[k]])), nome: a.nome, slogan: a.slogan,
+            temas: TEMAS, fontes: Object.fromEntries(Object.entries(FONTES).map(([k, f]) => [k, f.nome])) });
+    }
+    if (url.pathname === "/api/admin/aparencia" && metodo === "PUT") return salvarAparencia(request, db);
     return json({ erro: "Não encontrado." }, 404);
 }

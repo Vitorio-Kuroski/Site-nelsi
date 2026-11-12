@@ -55,7 +55,7 @@ svg { flex-shrink: 0; }
 .botao--sacola.adicionado { background: var(--vinho); border-color: var(--vinho); color: #fff; }
 
 /* ---------- Topo ---------- */
-.topo { position: sticky; top: 0; z-index: 50; background: rgba(251, 246, 241, .94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--linha); }
+.topo { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--fundo) 94%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--linha); }
 .topo__linha { display: flex; align-items: center; gap: 1rem; min-height: 68px; }
 .marca { display: grid; text-decoration: none; line-height: 1.05; margin-right: auto; min-width: 0; }
 .marca__nome { font-family: var(--titulo); font-style: italic; font-weight: 600; font-size: 1.7rem; color: var(--vinho); }
@@ -103,7 +103,7 @@ svg { flex-shrink: 0; }
 @media (min-width: 640px) { .produtos--linha { grid-auto-columns: minmax(220px, 24%); } }
 .produtos--linha .produto { scroll-snap-align: start; }
 .produto { display: flex; flex-direction: column; overflow: hidden; border-radius: var(--raio); background: var(--papel); box-shadow: var(--sombra); }
-.produto__foto { position: relative; display: block; aspect-ratio: 1; background: #F7F0EA; }
+.produto__foto { position: relative; display: block; aspect-ratio: 1; background: var(--fundo-2); }
 .produto__foto img { width: 100%; height: 100%; object-fit: cover; }
 .produto__sem-foto { display: grid; place-items: center; width: 100%; height: 100%; }
 .produto__sem-foto svg { width: 42%; fill: none; stroke: var(--dourado); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -209,3 +209,22 @@ body.com-sacola .rodape { padding-bottom: 96px; }
 .conta__esqueci { margin-top: -.4rem; font-size: .88rem; text-align: right; }
 .link-seta { color: var(--vinho); font-weight: 700; }
 .botao--sacola.adicionado:hover { background: var(--vinho-escuro); border-color: var(--vinho-escuro); color: #fff; }
+
+/* ---------- Aparência escolhida no painel ---------- */
+/* Temas: cada um troca a cor principal, o fundo e o detalhe */
+body[data-tema="rosa"] { --vinho: #C2407A; --vinho-escuro: #9E2F61; --vinho-claro: #FBE4EF; --fundo: #FFF7FA; --fundo-2: #FBEAF1; --linha: #F1DCE5; --dourado: #A8616E; }
+body[data-tema="lilas"] { --vinho: #6E4BA8; --vinho-escuro: #553885; --vinho-claro: #EEE6FA; --fundo: #FAF7FD; --fundo-2: #F0EAF8; --linha: #E3DAF0; --dourado: #8A6BB8; }
+body[data-tema="oliva"] { --vinho: #5E6B2E; --vinho-escuro: #465122; --vinho-claro: #ECEFDC; --fundo: #FAF8F1; --fundo-2: #F0EEE0; --linha: #E2DFCB; --dourado: #957728; }
+body[data-tema="preto"] { --vinho: #1F1B1A; --vinho-escuro: #000; --vinho-claro: #EFE6D6; --fundo: #FBF8F3; --fundo-2: #F2ECE2; --linha: #E5DDCF; --dourado: #A27A2E; }
+body[data-tema="marinho"] { --vinho: #1F3A68; --vinho-escuro: #152A4F; --vinho-claro: #E2E9F5; --fundo: #F7F9FC; --fundo-2: #EAEFF7; --linha: #DCE3EE; --dourado: #9A7633; }
+body[data-tema="preto"] .rodape { background: #000; }
+/* Fontes */
+body[data-fonte="moderna"] { --titulo: 'Poppins', system-ui, sans-serif; }
+body[data-fonte="moderna"] .marca__nome, body[data-fonte="moderna"] .rodape__nome, body[data-fonte="moderna"] .secao__titulo em { font-style: normal; }
+body[data-fonte="delicada"] { --titulo: 'Dancing Script', 'Segoe Script', cursive; }
+body[data-fonte="delicada"] .marca__nome { font-size: 2rem; font-style: normal; }
+body[data-fonte="delicada"] .apresenta h1, body[data-fonte="delicada"] .secao__titulo { font-size: clamp(2.2rem, 7.5vw, 3.4rem); line-height: 1.05; }
+body[data-fonte="delicada"] .secao__titulo em, body[data-fonte="delicada"] .rodape__nome { font-style: normal; }
+/* Logo em imagem e faixa de aviso */
+.marca__logo { max-height: 48px; max-width: 190px; width: auto; object-fit: contain; }
+.banner { padding: .55rem 20px; background: var(--vinho); color: #fff; font-weight: 700; font-size: .92rem; text-align: center; }
