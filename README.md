@@ -4,7 +4,7 @@ Loja de **Tupperware, perfumes e kits de beleza** com pedido pelo WhatsApp. Feit
 
 ## O que tem
 
-- **Catálogo** com fotos, preço, promoção (preço "de" riscado), esgotado, busca e filtro por categoria.
+- **Catálogo** com fotos, marca (O Boticário, Natura, Eudora, Tupperware), filtro por categoria e por marca, preço, promoção (preço "de" riscado), esgotado, busca e filtro por categoria.
 - **Pedir no WhatsApp:** cada produto abre o WhatsApp da Nelsi com a mensagem pronta (nome, preço e link).
 - **Sacola:** o cliente junta vários produtos e manda a lista com o total numa mensagem só. A sacola fica só no aparelho do cliente.
 - **Página de cada produto** (`/produto/<nome>/`), boa para o Google e para mandar no WhatsApp.

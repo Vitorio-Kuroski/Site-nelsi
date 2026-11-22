@@ -186,9 +186,9 @@ async function paginaProdutos(mensagem = "", tipo = "ok") {
             ${produtos.length ? `<div class="adm-bloco__cabeca"><input type="search" class="adm-busca" id="filtro" placeholder="Procurar produto…" value="${esc(filtroProdutos)}"></div>
             <table class="adm-tabela adm-tabela--aulas">
                 <thead><tr><th>Ordem</th><th>Produto</th><th>Preço</th><th>Pedidos (30 dias)</th><th>Situação</th><th></th></tr></thead><tbody>
-                ${produtos.map((p, i) => `<tr data-produto="${p.id}" data-busca="${esc(`${p.nome} ${p.categoria}`.toLowerCase())}" tabindex="0">
+                ${produtos.map((p, i) => `<tr data-produto="${p.id}" data-busca="${esc(`${p.nome} ${p.marca} ${p.categoria}`.toLowerCase())}" tabindex="0">
                     <td class="adm-ordem"><button type="button" class="adm-mini adm-mini--neutro" data-mover="-1" aria-label="Subir ${esc(p.nome)}" ${i ? "" : "disabled"}>↑</button><button type="button" class="adm-mini adm-mini--neutro" data-mover="1" aria-label="Descer ${esc(p.nome)}" ${i < produtos.length - 1 ? "" : "disabled"}>↓</button></td>
-                    <td data-rotulo="Produto"><div class="adm-post">${p.foto ? `<img src="${esc(p.foto)}" alt="">` : '<span class="adm-post__sem"></span>'}<span><strong>${esc(p.nome)}</strong><small>${esc(p.categoria || "Sem categoria")}</small></span></div></td>
+                    <td data-rotulo="Produto"><div class="adm-post">${p.foto ? `<img src="${esc(p.foto)}" alt="">` : '<span class="adm-post__sem"></span>'}<span><strong>${esc(p.nome)}</strong><small>${esc([p.marca, p.categoria].filter(Boolean).join(" · ") || "Sem categoria")}</small></span></div></td>
                     <td data-rotulo="Preço" class="adm-preco">${p.preco_antigo > p.preco ? `<s>${dinheiro(p.preco_antigo)}</s>` : ""}${p.preco ? dinheiro(p.preco) : "Consulte"}</td>
                     <td data-rotulo="Pedidos">${p.pedidos30}</td>
                     <td><div class="adm-rapidos">
@@ -240,14 +240,15 @@ async function paginaProdutos(mensagem = "", tipo = "ok") {
 
 async function paginaProdutoForm(id, mensagem = "", tipo = "ok") {
     const novo = id === "novo";
-    const [{ categorias, moeda }, p] = await Promise.all([
+    const [{ categorias, marcas, moeda }, p] = await Promise.all([
         api("/api/admin/produtos"),
-        novo ? Promise.resolve({ nome: "", slug: "", categoria: "", descricao: "", preco: 0, preco_antigo: 0, foto: "", destaque: 0, esgotado: 0, ativo: 1 }) : api(`/api/admin/produtos/${id}`),
+        novo ? Promise.resolve({ nome: "", slug: "", categoria: "", marca: "", descricao: "", preco: 0, preco_antigo: 0, foto: "", destaque: 0, esgotado: 0, ativo: 1 }) : api(`/api/admin/produtos/${id}`),
     ]);
     moedaLoja = moeda;
     titulo.textContent = novo ? "Novo produto" : p.nome;
     const simbolo = moeda === "EUR" ? "€" : "R$";
     const opcoes = [...new Set([...categorias, p.categoria].filter(Boolean))];
+    const opcoesMarca = [...new Set([...marcas, p.marca].filter(Boolean))];
     conteudo.innerHTML = `
         ${aviso(mensagem, tipo)}
         <div class="adm-cabeca"><h1>${novo ? "Novo produto" : esc(p.nome)}<small>${novo ? "Foto, nome e preço já bastam. O resto é opcional." : `<a href="/produto/${esc(p.slug)}/" target="_blank" rel="noopener">Ver no site</a>`}</small></h1>
@@ -268,8 +269,12 @@ async function paginaProdutoForm(id, mensagem = "", tipo = "ok") {
                 <label class="campo">Preço (${simbolo}) <span class="adm-form__dica">em branco: "Consulte o preço"</span><input name="preco" inputmode="decimal" value="${precoCampo(p.preco)}" placeholder="89,90"></label>
                 <label class="campo">Preço "de" (${simbolo}) <span class="adm-form__dica">só em promoção: o preço antigo, riscado</span><input name="preco_antigo" inputmode="decimal" value="${precoCampo(p.preco_antigo)}" placeholder="119,90"></label>
             </div>
-            <label class="campo">Categoria <span class="adm-form__dica">para escrever uma nova, mude a lista em "Dados da loja"</span>
-                <select name="categoria"><option value="">Sem categoria</option>${opcoes.map((c) => `<option ${c === p.categoria ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
+            <div class="adm-duas-colunas">
+                <label class="campo">Marca <span class="adm-form__dica">a lista fica em "Dados da loja"</span>
+                    <select name="marca"><option value="">Sem marca</option>${opcoesMarca.map((c) => `<option ${c === p.marca ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
+                <label class="campo">Categoria <span class="adm-form__dica">a lista fica em "Dados da loja"</span>
+                    <select name="categoria"><option value="">Sem categoria</option>${opcoes.map((c) => `<option ${c === p.categoria ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
+            </div>
             <label class="campo">Descrição <span class="adm-form__dica">opcional: tamanho, fragrância, o que vem no kit…</span><textarea name="descricao" maxlength="1500">${esc(p.descricao)}</textarea></label>
             <fieldset class="adm-marcas"><legend>Situação</legend>
                 <label class="adm-check"><input type="checkbox" name="ativo" ${p.ativo ? "checked" : ""}> Mostrar no site</label>
@@ -320,7 +325,7 @@ async function paginaProdutoForm(id, mensagem = "", tipo = "ok") {
         erro.hidden = true;
         if (!form.slug.value) form.slug.value = slugDe(form.nome.value);
         const corpo = {
-            nome: form.nome.value, slug: form.slug.value, categoria: form.categoria.value, descricao: form.descricao.value,
+            nome: form.nome.value, slug: form.slug.value, categoria: form.categoria.value, marca: form.marca.value, descricao: form.descricao.value,
             preco: form.preco.value, preco_antigo: form.preco_antigo.value, foto,
             ativo: form.ativo.checked, destaque: form.destaque.checked, esgotado: form.esgotado.checked,
         };
@@ -350,7 +355,7 @@ async function paginaProdutoForm(id, mensagem = "", tipo = "ok") {
 
 async function paginaLote() {
     titulo.textContent = "Cadastro rápido";
-    const { categorias, moeda } = await api("/api/admin/produtos");
+    const { categorias, marcas, moeda } = await api("/api/admin/produtos");
     moedaLoja = moeda;
     const simbolo = moeda === "EUR" ? "€" : "R$";
     const itens = []; // { id, foto, status, erro }
@@ -361,7 +366,9 @@ async function paginaLote() {
         <section class="adm-bloco adm-form">
             <div class="adm-lote__topo">
                 <label class="adm-botao adm-botao--principal adm-lote__escolher">Escolher fotos<input type="file" accept="image/*" multiple id="fotos" hidden></label>
-                <label class="campo">Categoria para as próximas fotos
+                <label class="campo">Marca das próximas fotos
+                    <select id="marca-padrao"><option value="">Sem marca</option>${marcas.map((c) => `<option>${esc(c)}</option>`).join("")}</select></label>
+                <label class="campo">Categoria das próximas fotos
                     <select id="cat-padrao"><option value="">Sem categoria</option>${categorias.map((c) => `<option>${esc(c)}</option>`).join("")}</select></label>
             </div>
             <p class="adm-form__dica" id="lote-status" role="status">No celular, dá para escolher várias fotos da galeria de uma vez.</p>
@@ -387,8 +394,9 @@ async function paginaLote() {
                 <label class="campo">Nome<input data-c="nome" maxlength="100" placeholder="Nome do produto"></label>
                 <div class="adm-duas-colunas">
                     <label class="campo">Preço (${simbolo})<input data-c="preco" inputmode="decimal" placeholder="89,90"></label>
-                    <label class="campo">Categoria<select data-c="categoria"><option value="">Sem categoria</option>${categorias.map((c) => `<option ${c === i.categoria ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
+                    <label class="campo">Marca<select data-c="marca"><option value="">Sem marca</option>${marcas.map((c) => `<option ${c === i.marca ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
                 </div>
+                <label class="campo">Categoria<select data-c="categoria"><option value="">Sem categoria</option>${categorias.map((c) => `<option ${c === i.categoria ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
                 <p class="conta__erro" data-erro hidden></p>
             </div>
             <button type="button" class="adm-mini adm-mini--neutro adm-lote__tirar" data-tirar aria-label="Tirar esta foto">✕</button>
@@ -398,12 +406,13 @@ async function paginaLote() {
         const arquivos = [...e.target.files];
         e.target.value = "";
         const categoria = document.getElementById("cat-padrao").value;
+        const marca = document.getElementById("marca-padrao").value;
         let n = 0;
         for (const arquivo of arquivos) {
             n++;
             status.textContent = `Enviando foto ${n} de ${arquivos.length}…`;
             try {
-                const item = { id: ++seq, foto: await enviarImagem(arquivo, 1200), categoria, status: "novo" };
+                const item = { id: ++seq, foto: await enviarImagem(arquivo, 1200), categoria, marca, status: "novo" };
                 itens.push(item);
                 lista.insertAdjacentHTML("beforeend", cartao(item));
                 atualizarRodape();
@@ -440,7 +449,7 @@ async function paginaLote() {
             const base = slugDe(v("nome")) || "produto";
             let salvo = false;
             for (let tentativa = 1; tentativa <= 9 && !salvo; tentativa++) {
-                const corpo = { nome: v("nome"), slug: tentativa === 1 ? base : `${base}-${tentativa}`, preco: v("preco"), categoria: v("categoria"), foto: i.foto, ativo: true };
+                const corpo = { nome: v("nome"), slug: tentativa === 1 ? base : `${base}-${tentativa}`, preco: v("preco"), categoria: v("categoria"), marca: v("marca"), foto: i.foto, ativo: true };
                 try {
                     await api("/api/admin/produtos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
                     salvo = true;
@@ -672,7 +681,7 @@ async function paginaLoja(mensagem = "", tipo = "ok") {
                 <textarea name="${nome}" class="adm-form__curto" maxlength="${max}">${esc(a[nome])}</textarea></label>`;
     conteudo.innerHTML = `
         ${aviso(mensagem, tipo)}
-        <div class="adm-cabeca"><h1>Dados da loja<small>O WhatsApp que recebe os pedidos, os textos da página inicial e as categorias.</small></h1></div>
+        <div class="adm-cabeca"><h1>Dados da loja<small>O WhatsApp que recebe os pedidos, os textos da página inicial, as categorias e as marcas.</small></h1></div>
         <form class="adm-bloco adm-form" id="form-loja" novalidate>
             ${campo("whatsapp", "WhatsApp que recebe os pedidos", "com o código do país e o DDD, ex.: 55 11 91234-5678", 'inputmode="tel" maxlength="20" placeholder="55 11 91234-5678"')}
             <div class="campo">Foto <span class="adm-form__dica">aparece redonda no topo da página</span>
@@ -693,6 +702,7 @@ async function paginaLoja(mensagem = "", tipo = "ok") {
             ${area("entrega", "Onde atende", "aparece em \"Como comprar\" e em cada produto", 300)}
             ${campo("pagamento", "Formas de pagamento", "", 'maxlength="160"')}
             ${area("categorias", "Categorias", "uma por linha, na ordem dos filtros do catálogo", 900)}
+            ${area("marcas", "Marcas que você revende", "uma por linha; aparecem no topo do site e no filtro de marcas", 900)}
             <label class="campo">Moeda <select name="moeda"><option value="BRL" ${a.moeda !== "EUR" ? "selected" : ""}>Real (R$)</option><option value="EUR" ${a.moeda === "EUR" ? "selected" : ""}>Euro (€)</option></select></label>
             <h3 class="adm-form__titulo">Redes sociais <span class="adm-form__dica">cole o link completo do perfil; em branco, o ícone some</span></h3>
             ${campo("instagram", "Instagram", "", 'inputmode="url" placeholder="https://www.instagram.com/..."')}

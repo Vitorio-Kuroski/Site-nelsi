@@ -3,7 +3,7 @@
 //   GET    /api/admin/eu                    nome e e-mail de quem está logado
 //   GET    /api/admin/resumo?de=&ate=       pedidos no período, por produto, e os produtos sem nenhum pedido
 //   GET    /api/admin/produtos              produtos com os pedidos dos últimos 30 dias
-//   POST   /api/admin/produtos              cria { nome, slug, categoria, descricao, preco, preco_antigo, foto, destaque, esgotado, ativo }
+//   POST   /api/admin/produtos              cria { nome, slug, categoria, marca, descricao, preco, preco_antigo, foto, destaque, esgotado, ativo }
 //   PUT    /api/admin/produtos/<id>         altera
 //   PATCH  /api/admin/produtos/<id>         muda só { esgotado } ou { ativo } ou { destaque } (botões rápidos da lista)
 //   DELETE /api/admin/produtos/<id>         apaga (e os pedidos contados dele)
@@ -14,7 +14,7 @@
 //   PUT    /api/admin/ajustes               salva os dados da loja
 //   POST   /api/admin/imagens               envia uma imagem (JPEG, PNG ou WebP até 1,8 MB) e devolve o endereço
 import { alunoLogado, ehAdmin, json } from "./contas.js";
-import { AJUSTES_PADRAO, APARENCIA_PADRAO, FONTES, OPCOES_APARENCIA, SECOES_INICIO, TEMAS, TEXTOS, ordemDasSecoes, categoriasDe, garantirTabelasLoja, lerAjustes } from "./loja.js";
+import { AJUSTES_PADRAO, APARENCIA_PADRAO, FONTES, OPCOES_APARENCIA, SECOES_INICIO, TEMAS, TEXTOS, ordemDasSecoes, categoriasDe, marcasDe, garantirTabelasLoja, lerAjustes } from "./loja.js";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const URL_OK = /^https:\/\/[^\s"'<>]+$/;
@@ -56,6 +56,7 @@ async function lerProduto(request) {
         nome: texto(d?.nome, 100),
         slug: texto(d?.slug, 80).toLowerCase(),
         categoria: texto(d?.categoria, 40),
+        marca: texto(d?.marca, 40),
         descricao: texto(d?.descricao, 1500),
         preco: centavos(d?.preco),
         preco_antigo: centavos(d?.preco_antigo),
@@ -80,7 +81,7 @@ async function rotasProdutos(request, url, metodo, db) {
             `SELECT p.*, COALESCE((SELECT SUM(n) FROM pedidos c WHERE c.produto_id = p.id AND c.dia >= date('now', '-29 days')), 0) AS pedidos30,
                     COALESCE((SELECT SUM(n) FROM pedidos c WHERE c.produto_id = p.id), 0) AS pedidos_total
              FROM produtos p ORDER BY p.ordem, p.id DESC`).all();
-        return json({ produtos: results, categorias: categoriasDe(a), moeda: a.moeda });
+        return json({ produtos: results, categorias: categoriasDe(a), marcas: marcasDe(a), moeda: a.moeda });
     }
     if (url.pathname === "/api/admin/produtos/ordem" && metodo === "POST") {
         let d;
@@ -116,17 +117,17 @@ async function rotasProdutos(request, url, metodo, db) {
     if ((id && metodo === "PUT") || (!id && metodo === "POST")) {
         const p = await lerProduto(request);
         if (p.erro) return json(p, 422);
-        const campos = [p.nome, p.slug, p.categoria, p.descricao, p.preco, p.preco_antigo, p.foto, p.destaque, p.esgotado, p.ativo];
+        const campos = [p.nome, p.slug, p.categoria, p.marca, p.descricao, p.preco, p.preco_antigo, p.foto, p.destaque, p.esgotado, p.ativo];
         try {
             if (id) {
                 const r = await db.prepare(
-                    `UPDATE produtos SET nome = ?, slug = ?, categoria = ?, descricao = ?, preco = ?, preco_antigo = ?, foto = ?, destaque = ?, esgotado = ?, ativo = ?,
+                    `UPDATE produtos SET nome = ?, slug = ?, categoria = ?, marca = ?, descricao = ?, preco = ?, preco_antigo = ?, foto = ?, destaque = ?, esgotado = ?, ativo = ?,
                      atualizado_em = datetime('now') WHERE id = ?`).bind(...campos, id).run();
                 return r.meta.changes ? json({ id }) : json({ erro: "Produto não encontrado." }, 404);
             }
             const novo = await db.prepare(
-                `INSERT INTO produtos (nome, slug, categoria, descricao, preco, preco_antigo, foto, destaque, esgotado, ativo, ordem)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MIN(ordem), 1) - 1 FROM produtos)) RETURNING id`).bind(...campos).first();
+                `INSERT INTO produtos (nome, slug, categoria, marca, descricao, preco, preco_antigo, foto, destaque, esgotado, ativo, ordem)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MIN(ordem), 1) - 1 FROM produtos)) RETURNING id`).bind(...campos).first();
             return json({ id: novo.id }, 201);
         } catch (erro) {
             if (/UNIQUE/i.test(String(erro))) return json({ erro: "Já existe um produto com esse endereço. Mude o endereço (ex.: acrescente -2)." }, 409);
@@ -145,6 +146,7 @@ async function salvarAjustes(request, db) {
     for (const chave of Object.keys(AJUSTES_PADRAO)) a[chave] = String(d?.[chave] ?? "").trim();
     a.whatsapp = a.whatsapp.replace(/\D/g, "");
     a.categorias = a.categorias.split("\n").map((c) => c.trim().slice(0, 40)).filter(Boolean).slice(0, 20).join("\n");
+    a.marcas = a.marcas.split("\n").map((c) => c.trim().slice(0, 40)).filter(Boolean).slice(0, 20).join("\n");
     if (!a.nome || a.nome.length > 40) return json({ erro: "Informe o nome da loja (até 40 caracteres)." }, 422);
     if (a.slogan.length > 80) return json({ erro: "A frase de baixo do nome passou de 80 caracteres." }, 422);
     if (a.apresentacao.length > 400 || a.entrega.length > 300 || a.pagamento.length > 160) return json({ erro: "Algum texto ficou longo demais." }, 422);

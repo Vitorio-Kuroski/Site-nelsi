@@ -10,22 +10,28 @@
         const busca = document.getElementById("busca");
         const nada = document.getElementById("nada");
         let categoria = "";
+        let marca = "";
         const sem = (t) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
         const aplicar = () => {
             const termos = sem(busca?.value || "").split(/\s+/).filter(Boolean);
             let visiveis = 0;
             lista.querySelectorAll(".produto").forEach((p) => {
                 const texto = sem(p.dataset.busca || "");
-                const ok = (!categoria || p.dataset.categoria === categoria) && termos.every((t) => texto.includes(t));
+                const ok = (!categoria || p.dataset.categoria === categoria) && (!marca || p.dataset.marca === marca) && termos.every((t) => texto.includes(t));
                 p.hidden = !ok;
                 if (ok) visiveis++;
             });
             if (nada) nada.hidden = visiveis > 0;
         };
         busca?.addEventListener("input", aplicar);
-        document.querySelectorAll(".filtro").forEach((b) => b.addEventListener("click", () => {
+        document.querySelectorAll("[data-filtro]").forEach((b) => b.addEventListener("click", () => {
             categoria = b.dataset.filtro;
-            document.querySelectorAll(".filtro").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+            document.querySelectorAll("[data-filtro]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+            aplicar();
+        }));
+        document.querySelectorAll("[data-filtro-marca]").forEach((b) => b.addEventListener("click", () => {
+            marca = b.dataset.filtroMarca;
+            document.querySelectorAll("[data-filtro-marca]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
             aplicar();
         }));
     }

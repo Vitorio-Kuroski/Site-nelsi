@@ -20,6 +20,7 @@ const TABELAS = [
         slug TEXT NOT NULL UNIQUE,
         nome TEXT NOT NULL,
         categoria TEXT NOT NULL DEFAULT '',
+        marca TEXT NOT NULL DEFAULT '',
         descricao TEXT NOT NULL DEFAULT '',
         preco INTEGER NOT NULL DEFAULT 0,
         preco_antigo INTEGER NOT NULL DEFAULT 0,
@@ -56,7 +57,7 @@ const TABELAS = [
 export const AJUSTES_PADRAO = {
     nome: "Nelsi",
     slogan: "Tupperware, perfumes e kits de beleza",
-    apresentacao: "Oi, eu sou a Nelsi! Aqui você encontra Tupperware, perfumes e kits de beleza para você ou para presentear. Escolha o que gostou e me chame no WhatsApp que eu te atendo pessoalmente.",
+    apresentacao: "Oi, eu sou a Nelsi! Aqui você encontra perfumes, maquiagem, kits de beleza e Tupperware para você ou para presentear. Escolha o que gostou e me chame no WhatsApp que eu te atendo pessoalmente.",
     whatsapp: "",
     cidade: "Curitiba",
     entrega: "Atendo Curitiba e região. Combine o dia e o local comigo pelo WhatsApp.",
@@ -67,6 +68,7 @@ export const AJUSTES_PADRAO = {
     foto: "",
     moeda: "BRL",
     categorias: "Tupperware\nPerfumes\nKits de beleza",
+    marcas: "O Boticário\nNatura\nEudora\nTupperware",
 };
 
 let prontas = false;
@@ -74,6 +76,9 @@ export async function garantirTabelasLoja(db) {
     if (prontas) return;
     await garantirTabelas(db);
     await db.batch(TABELAS.map((sql) => db.prepare(sql)));
+    // Bancos criados antes do campo "marca"
+    const { results: colunas } = await db.prepare("PRAGMA table_info(produtos)").all();
+    if (!colunas.some((c) => c.name === "marca")) await db.prepare("ALTER TABLE produtos ADD COLUMN marca TEXT NOT NULL DEFAULT ''").run();
     const iniciado = await db.prepare("SELECT 1 FROM ajustes WHERE chave = 'iniciado'").first();
     if (!iniciado) {
         await db.batch([
@@ -153,6 +158,10 @@ export async function lerAjustes(db) {
 }
 
 export const categoriasDe = (a) => String(a.categorias || "").split("\n").map((c) => c.trim()).filter(Boolean);
+export const marcasDe = (a) => String(a.marcas || "").split("\n").map((c) => c.trim()).filter(Boolean);
+const rotuloProduto = (p) => [p.marca, p.categoria].filter(Boolean).join(" · ");
+// Lista escrita "A, B, C e D"
+const listaTexto = (l) => (l.length > 1 ? `${l.slice(0, -1).join(", ")} e ${l.at(-1)}` : l[0] || "");
 
 export function esc(texto) {
     return String(texto ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -288,11 +297,11 @@ function cartaoProduto(p, a) {
     const promo = p.preco_antigo > p.preco && p.preco > 0;
     const zap = numeroZap(a);
     return `
-                <article class="produto${p.esgotado ? " produto--esgotado" : ""}" data-categoria="${esc(p.categoria)}" data-busca="${esc(`${p.nome} ${p.categoria} ${p.descricao}`.toLowerCase())}">
+                <article class="produto${p.esgotado ? " produto--esgotado" : ""}" data-categoria="${esc(p.categoria)}" data-marca="${esc(p.marca)}" data-busca="${esc(`${p.nome} ${p.marca} ${p.categoria} ${p.descricao}`.toLowerCase())}">
                     <a class="produto__foto" href="/produto/${esc(p.slug)}/">${fotoProduto(p)}
                         ${p.esgotado ? '<span class="etiqueta etiqueta--esgotado">Esgotado</span>' : promo ? '<span class="etiqueta">Promoção</span>' : ""}</a>
                     <div class="produto__texto">
-                        ${p.categoria ? `<p class="produto__categoria">${esc(p.categoria)}</p>` : ""}
+                        ${rotuloProduto(p) ? `<p class="produto__categoria">${esc(rotuloProduto(p))}</p>` : ""}
                         <h3><a href="/produto/${esc(p.slug)}/">${esc(p.nome)}</a></h3>
                         ${precoHtml(p, a.moeda)}
                     </div>
@@ -311,6 +320,8 @@ export async function paginaInicial(request, env) {
     const destaques = produtos.filter((p) => (p.destaque || (p.preco_antigo > p.preco && p.preco > 0)) && !p.esgotado).slice(0, 8);
     const usadas = new Set(produtos.map((p) => p.categoria).filter(Boolean));
     const categorias = [...categoriasDe(a).filter((c) => usadas.has(c)), ...[...usadas].filter((c) => !categoriasDe(a).includes(c))];
+    const usadasMarcas = new Set(produtos.map((p) => p.marca).filter(Boolean));
+    const marcas = [...marcasDe(a).filter((m) => usadasMarcas.has(m)), ...[...usadasMarcas].filter((m) => !marcasDe(a).includes(m))];
     const zap = numeroZap(a);
     const foto = a.foto
         ? `<img src="${esc(a.foto)}" alt="Foto de ${esc(a.nome)}" width="320" height="320">`
@@ -333,6 +344,10 @@ export async function paginaInicial(request, env) {
                     ${categorias.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por categoria">
                         <button type="button" class="filtro" data-filtro="" aria-pressed="true">Tudo</button>
                         ${categorias.map((c) => `<button type="button" class="filtro" data-filtro="${esc(c)}" aria-pressed="false">${esc(c)}</button>`).join("")}
+                    </div>` : ""}
+                    ${marcas.length > 1 ? `<div class="filtros filtros--marcas" role="group" aria-label="Filtrar por marca">
+                        <button type="button" class="filtro" data-filtro-marca="" aria-pressed="true">Todas as marcas</button>
+                        ${marcas.map((m) => `<button type="button" class="filtro" data-filtro-marca="${esc(m)}" aria-pressed="false">${esc(m)}</button>`).join("")}
                     </div>` : ""}
                 </div>
                 <div class="produtos" id="produtos">${produtos.map((p) => cartaoProduto(p, a)).join("")}
@@ -364,6 +379,7 @@ export async function paginaInicial(request, env) {
                     <p class="apresenta__ola">${a.cidade ? `${esc(a.cidade)} · ` : ""}atendimento pelo WhatsApp</p>
                     <h1>${esc(a.slogan)}</h1>
                     <p class="apresenta__lead">${esc(a.apresentacao)}</p>
+                    ${marcasDe(a).length ? `<p class="apresenta__marcas"><span>Revendedora</span> ${esc(listaTexto(marcasDe(a)))}</p>` : ""}
                     <div class="apresenta__acoes">
                         <a class="botao" href="#catalogo">${esc(a.texto_ver_catalogo)}</a>
                         ${zap ? `<a class="botao botao--zap" href="${esc(linkZap(a, `Oi ${primeiroNome(a)}! Vim pelo site e queria uma ajuda.`))}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>${esc(a.texto_falar)}</span></a>` : ""}
@@ -394,6 +410,7 @@ export async function paginaProduto(request, env, slug) {
         "@context": "https://schema.org", "@type": "Product", name: p.nome, description: p.descricao || p.nome,
         ...(p.foto ? { image: new URL(p.foto, url.origin).toString() } : {}),
         ...(p.categoria ? { category: p.categoria } : {}),
+        ...(p.marca ? { brand: { "@type": "Brand", name: p.marca } } : {}),
         ...(p.preco ? { offers: { "@type": "Offer", price: (p.preco / 100).toFixed(2), priceCurrency: a.moeda === "EUR" ? "EUR" : "BRL",
             availability: p.esgotado ? "https://schema.org/OutOfStock" : "https://schema.org/InStock", url: `${url.origin}/produto/${p.slug}/` } } : {}),
     };
@@ -411,7 +428,7 @@ export async function paginaProduto(request, env, slug) {
                 <div class="produto-pagina__grade">
                     <div class="produto-pagina__foto">${fotoProduto(p, true)}</div>
                     <div class="produto-pagina__texto">
-                        ${p.categoria ? `<p class="produto__categoria">${esc(p.categoria)}</p>` : ""}
+                        ${rotuloProduto(p) ? `<p class="produto__categoria">${esc(rotuloProduto(p))}</p>` : ""}
                         <h1 class="titulo-pagina">${esc(p.nome)}</h1>
                         ${p.esgotado ? '<p class="etiqueta etiqueta--esgotado etiqueta--solta">Esgotado no momento</p>' : ""}
                         ${precoHtml(p, a.moeda)}
