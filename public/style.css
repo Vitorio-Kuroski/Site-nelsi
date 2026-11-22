@@ -315,3 +315,12 @@ body[data-foto-produto="redonda"] .produto-pagina__foto { border-radius: 32px; }
 
 /* Logo do WhatsApp: desenho cheio (não é traço como os outros ícones) */
 svg.icone-zap, .botao svg.icone-zap, .rede svg.icone-zap { fill: currentColor; stroke: none; }
+
+/* Botão flutuante do WhatsApp (canto da tela, acompanha a rolagem) */
+.zap-flutuante { position: fixed; right: 16px; bottom: 18px; z-index: 55; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%;
+  background: #25D366; color: #fff; box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .45); transition: transform .2s, bottom .25s; }
+.zap-flutuante:hover { transform: scale(1.06); }
+.zap-flutuante svg { width: 32px; height: 32px; }
+body.com-sacola .zap-flutuante { bottom: 86px; }
+@media (min-width: 820px) { .zap-flutuante { right: 24px; bottom: 24px; width: 64px; height: 64px; } body.com-sacola .zap-flutuante { bottom: 92px; } }
+@media print { .zap-flutuante { display: none; } }

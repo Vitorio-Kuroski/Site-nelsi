@@ -280,6 +280,7 @@ ${conteudo}
             <p class="rodape__links"><a href="/#catalogo">Catálogo</a> · <a href="/privacidade/">Privacidade</a> · <a href="/conta/entrar/">Painel</a></p>
         </div>
     </footer>
+    ${zap ? `<a class="zap-flutuante" href="${esc(linkZap(ajustes, `Oi ${primeiroNome(ajustes)}! Vim pelo site.`))}" target="_blank" rel="noopener" aria-label="Falar com ${esc(primeiroNome(ajustes))} no WhatsApp" title="Falar no WhatsApp">${ICONES.whatsapp}</a>` : ""}
     <div class="sacola" id="sacola" hidden>
         <button type="button" class="sacola__barra" id="sacola-abrir" aria-controls="sacola-lista" aria-expanded="false">
             ${ICONES.sacola}<span id="sacola-resumo">Sacola</span><strong id="sacola-total"></strong>
