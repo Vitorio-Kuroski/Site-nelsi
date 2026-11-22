@@ -29,6 +29,10 @@
             document.querySelectorAll("[data-filtro]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
             aplicar();
         }));
+        // Blocos de categoria no topo: levam ao catálogo já filtrado
+        document.querySelectorAll("[data-ir-categoria]").forEach((el) => el.addEventListener("click", () => {
+            document.querySelector(`[data-filtro="${CSS.escape(el.dataset.irCategoria)}"]`)?.click();
+        }));
         document.querySelectorAll("[data-filtro-marca]").forEach((b) => b.addEventListener("click", () => {
             marca = b.dataset.filtroMarca;
             document.querySelectorAll("[data-filtro-marca]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));

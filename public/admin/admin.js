@@ -543,7 +543,9 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
             <label class="campo">Texto<input name="banner_texto" maxlength="140" value="${esc(a.banner_texto)}" placeholder="Ex.: Promoção de Natal: kits com 20% off até dia 20!"></label>
             <label class="campo adm-form__data">Mostrar até <span class="adm-form__dica">opcional: no dia seguinte a faixa some sozinha</span><input type="date" name="banner_ate" value="${esc(a.banner_ate)}"></label>
             <fieldset class="adm-marcas"><legend>Seções da página inicial</legend>
+                <label class="adm-check"><input type="checkbox" name="mostrar_categorias" ${a.mostrar_categorias === "1" ? "checked" : ""}> Blocos de categoria</label>
                 <label class="adm-check"><input type="checkbox" name="mostrar_destaques" ${a.mostrar_destaques === "1" ? "checked" : ""}> Destaques e promoções</label>
+                <label class="adm-check"><input type="checkbox" name="mostrar_sobre" ${a.mostrar_sobre === "1" ? "checked" : ""}> Sobre mim</label>
                 <label class="adm-check"><input type="checkbox" name="mostrar_como_comprar" ${a.mostrar_como_comprar === "1" ? "checked" : ""}> Como comprar</label>
                 <label class="adm-check"><input type="checkbox" name="mostrar_pagamento" ${a.mostrar_pagamento === "1" ? "checked" : ""}> Formas de pagamento</label>
             </fieldset>
@@ -661,7 +663,7 @@ async function paginaAparencia(mensagem = "", tipo = "ok") {
             foto_topo: form.foto_topo.value, foto_produto: form.foto_produto.value, colunas_celular: form.colunas_celular.value,
             ...Object.fromEntries(Object.keys(a.textos).map((k) => [k, form[k].value])), ordem_secoes: ordem,
             banner_texto: form.banner_texto.value, banner_ate: form.banner_ate.value,
-            mostrar_destaques: form.mostrar_destaques.checked, mostrar_como_comprar: form.mostrar_como_comprar.checked, mostrar_pagamento: form.mostrar_pagamento.checked,
+            mostrar_destaques: form.mostrar_destaques.checked, mostrar_categorias: form.mostrar_categorias.checked, mostrar_sobre: form.mostrar_sobre.checked, mostrar_como_comprar: form.mostrar_como_comprar.checked, mostrar_pagamento: form.mostrar_pagamento.checked,
         }, "Salvo. Abra o site para ver como ficou.");
     });
     document.getElementById("original").addEventListener("click", () => {
@@ -697,7 +699,7 @@ async function paginaLoja(mensagem = "", tipo = "ok") {
                 ${campo("nome", "Nome da loja", "", 'maxlength="40" required')}
                 ${campo("cidade", "Cidade", "opcional", 'maxlength="60"')}
             </div>
-            ${campo("slogan", "Frase de baixo do nome", "até 80 caracteres", 'maxlength="80"')}
+            ${campo("slogan", "Título do topo", "aparece grande no topo e embaixo do nome; até 80 caracteres", 'maxlength="80"')}
             ${area("apresentacao", "Apresentação", "o texto do topo da página inicial")}
             ${area("entrega", "Onde atende", "aparece em \"Como comprar\" e em cada produto", 300)}
             ${campo("pagamento", "Formas de pagamento", "", 'maxlength="160"')}

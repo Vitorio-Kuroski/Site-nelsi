@@ -174,6 +174,8 @@ async function salvarAparencia(request, db) {
         banner_texto: String(d?.banner_texto ?? "").trim().slice(0, 140),
         banner_ate: /^\d{4}-\d{2}-\d{2}$/.test(d?.banner_ate || "") ? d.banner_ate : "",
         mostrar_destaques: d?.mostrar_destaques ? "1" : "0",
+        mostrar_categorias: d?.mostrar_categorias === false ? "0" : "1",
+        mostrar_sobre: d?.mostrar_sobre === false ? "0" : "1",
         mostrar_como_comprar: d?.mostrar_como_comprar ? "1" : "0",
         mostrar_pagamento: d?.mostrar_pagamento ? "1" : "0",
         ...Object.fromEntries(Object.entries(TEXTOS).map(([k, t]) => [k, String(d?.[k] ?? "").trim().slice(0, t.max) || APARENCIA_PADRAO[k]])),

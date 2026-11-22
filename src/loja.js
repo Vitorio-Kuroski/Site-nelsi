@@ -56,7 +56,7 @@ const TABELAS = [
 
 export const AJUSTES_PADRAO = {
     nome: "Nelsi",
-    slogan: "Tupperware, perfumes e kits de beleza",
+    slogan: "Perfumes, beleza e Tupperware",
     apresentacao: "Oi, eu sou a Nelsi! Aqui você encontra perfumes, maquiagem, kits de beleza e Tupperware para você ou para presentear. Escolha o que gostou e me chame no WhatsApp que eu te atendo pessoalmente.",
     whatsapp: "",
     cidade: "Curitiba",
@@ -67,7 +67,7 @@ export const AJUSTES_PADRAO = {
     email: "",
     foto: "",
     moeda: "BRL",
-    categorias: "Tupperware\nPerfumes\nKits de beleza",
+    categorias: "Perfumes\nMaquiagem\nKits presente\nTupperware",
     marcas: "O Boticário\nNatura\nEudora\nTupperware",
 };
 
@@ -98,6 +98,8 @@ export const APARENCIA_PADRAO = {
     banner_texto: "",
     banner_ate: "",
     mostrar_destaques: "1",
+    mostrar_categorias: "1",
+    mostrar_sobre: "1",
     mostrar_como_comprar: "1",
     mostrar_pagamento: "1",
     foto_topo: "redonda",
@@ -105,26 +107,34 @@ export const APARENCIA_PADRAO = {
     colunas_celular: "2",
     texto_pedir: "Pedir",
     texto_ver_catalogo: "Ver o catálogo",
+    texto_topo: "Escolha aqui e peça direto comigo no WhatsApp.",
     texto_falar: "Falar comigo",
     texto_enviar_sacola: "Enviar pedido no WhatsApp",
+    titulo_categorias: "Compre por categoria",
     titulo_destaques: "Destaques e promoções",
     titulo_catalogo: "Catálogo",
+    titulo_sobre: "Sobre mim",
     titulo_como_comprar: "Como comprar",
-    ordem_secoes: "destaques,catalogo,como_comprar",
+    ordem_secoes: "categorias,destaques,catalogo,sobre,como_comprar",
 };
-export const SECOES_INICIO = { destaques: "Destaques e promoções", catalogo: "Catálogo", como_comprar: "Como comprar" };
+export const SECOES_INICIO = { categorias: "Compre por categoria", destaques: "Destaques e promoções", catalogo: "Catálogo", sobre: "Sobre mim", como_comprar: "Como comprar" };
 export const TEXTOS = {
     texto_pedir: { rotulo: "Botão de pedir (em cada produto)", max: 20 },
+    texto_topo: { rotulo: "Frase do topo", max: 120 },
     texto_ver_catalogo: { rotulo: "Botão do topo para o catálogo", max: 30 },
     texto_falar: { rotulo: "Botão do topo para o WhatsApp", max: 30 },
     texto_enviar_sacola: { rotulo: "Botão de enviar a sacola", max: 40 },
+    titulo_categorias: { rotulo: "Título das categorias", max: 40 },
     titulo_destaques: { rotulo: "Título dos destaques", max: 40 },
     titulo_catalogo: { rotulo: "Título do catálogo", max: 40 },
+    titulo_sobre: { rotulo: "Título do \"Sobre mim\"", max: 40 },
     titulo_como_comprar: { rotulo: "Título do \"Como comprar\"", max: 40 },
 };
 export function ordemDasSecoes(a) {
-    const lista = String(a.ordem_secoes || "").split(",").filter((k) => k in SECOES_INICIO);
-    return [...new Set([...lista, ...Object.keys(SECOES_INICIO)])];
+    const lista = [...new Set(String(a.ordem_secoes || "").split(",").filter((k) => k in SECOES_INICIO))];
+    // Seção nova que ainda não está na ordem salva entra na posição do padrão
+    APARENCIA_PADRAO.ordem_secoes.split(",").forEach((k, i) => { if (!lista.includes(k)) lista.splice(Math.min(i, lista.length), 0, k); });
+    return lista;
 }
 // A última palavra do título fica em destaque (itálico, na cor do tema)
 function tituloSecao(t) {
@@ -152,6 +162,9 @@ export async function lerAjustes(db) {
     const a = { ...AJUSTES_PADRAO, ...APARENCIA_PADRAO, ...Object.fromEntries(results.map((r) => [r.chave, r.valor])) };
     if (!TEMAS[a.tema] && !(a.tema === "propria" && hexOk(a.cor_propria))) a.tema = APARENCIA_PADRAO.tema;
     if (!FONTES[a.fonte]) a.fonte = APARENCIA_PADRAO.fonte;
+    // Textos antigos do padrão (antes do visual "Vitrine") viram os novos
+    if (a.slogan === "Tupperware, perfumes e kits de beleza") a.slogan = AJUSTES_PADRAO.slogan;
+    if (a.categorias === "Tupperware\nPerfumes\nKits de beleza") a.categorias = AJUSTES_PADRAO.categorias;
     for (const [k, opcoes] of Object.entries(OPCOES_APARENCIA)) if (!(a[k] in opcoes)) a[k] = APARENCIA_PADRAO[k];
     for (const k of Object.keys(TEXTOS)) if (!String(a[k] || "").trim()) a[k] = APARENCIA_PADRAO[k];
     return a;
@@ -187,6 +200,7 @@ const ICONES = {
     // Desenhos para produto sem foto, por categoria
     pote: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="16" width="30" height="22" rx="5"/><path d="M7 16h34v-4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2z"/><path d="M15 24h18"/></svg>',
     perfume: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="12" y="18" width="24" height="22" rx="6"/><path d="M19 18v-5h10v5M21 13V8h6v5"/><path d="M18 30c4-3 8 3 12 0"/></svg>',
+    batom: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="17" y="24" width="14" height="16" rx="2"/><path d="M19 24v-8l10-6v14"/></svg>',
     beleza: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="22" width="12" height="18" rx="3"/><path d="M13 22v-7l6-3v10"/><rect x="26" y="16" width="12" height="24" rx="6"/><path d="M29 22h6"/></svg>',
     presente: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="20" width="30" height="20" rx="3"/><path d="M7 14h34v6H7zM24 14v26"/><path d="M24 14c-3-6-11-6-9-1 1 2 6 1 9 1zM24 14c3-6 11-6 9-1-1 2-6 1-9 1z"/></svg>',
 };
@@ -195,7 +209,9 @@ function desenhoDa(categoria) {
     const c = String(categoria || "").toLowerCase();
     if (/tupper|pote|cozinha/.test(c)) return ICONES.pote;
     if (/perfum|col[oô]nia|fragr/.test(c)) return ICONES.perfume;
-    if (/beleza|maqui|skin|cuidado|creme/.test(c)) return ICONES.beleza;
+    if (/maqui|batom|make/.test(c)) return ICONES.batom;
+    if (/kit|presente/.test(c)) return ICONES.presente;
+    if (/beleza|skin|cuidado|creme/.test(c)) return ICONES.beleza;
     return ICONES.presente;
 }
 
@@ -323,10 +339,28 @@ export async function paginaInicial(request, env) {
     const usadasMarcas = new Set(produtos.map((p) => p.marca).filter(Boolean));
     const marcas = [...marcasDe(a).filter((m) => usadasMarcas.has(m)), ...[...usadasMarcas].filter((m) => !marcasDe(a).includes(m))];
     const zap = numeroZap(a);
-    const foto = a.foto
-        ? `<img src="${esc(a.foto)}" alt="Foto de ${esc(a.nome)}" width="320" height="320">`
-        : `<span class="apresenta__letra" aria-hidden="true">${esc(primeiroNome(a)[0] || "N")}</span>`;
+    const listaCategorias = categorias.length ? categorias : categoriasDe(a);
     const secoes = {
+        categorias: `        ${a.mostrar_categorias === "1" && listaCategorias.length > 1 ? `<section class="secao secao--categorias" id="categorias">
+            <div class="caixa">
+                <h2 class="secao__titulo">${tituloSecao(a.titulo_categorias)}</h2>
+                <div class="categorias">${listaCategorias.map((c, i) => `
+                    <a class="categoria categoria--${i % 6}" href="#catalogo" data-ir-categoria="${esc(c)}">${desenhoDa(c)}<span>${esc(c)}</span></a>`).join("")}
+                </div>
+            </div>
+        </section>` : ""}`,
+        sobre: `        ${a.mostrar_sobre === "1" && a.apresentacao ? `<section class="secao" id="sobre">
+            <div class="caixa">
+                <div class="sobre">
+                    ${a.foto ? `<img class="sobre__foto" src="${esc(a.foto)}" alt="Foto de ${esc(a.nome)}" width="120" height="120" loading="lazy">` : `<span class="sobre__foto sobre__letra" aria-hidden="true">${esc(primeiroNome(a)[0] || "N")}</span>`}
+                    <div>
+                        <h2 class="secao__titulo">${tituloSecao(a.titulo_sobre)}</h2>
+                        <p>${esc(a.apresentacao)}</p>
+                        ${marcasDe(a).length ? `<p class="sobre__marcas">Revendedora ${esc(listaTexto(marcasDe(a)))}.</p>` : ""}
+                    </div>
+                </div>
+            </div>
+        </section>` : ""}`,
         destaques: `        ${destaques.length && a.mostrar_destaques === "1" ? `<section class="secao" id="destaques">
             <div class="caixa">
                 <h2 class="secao__titulo">${tituloSecao(a.titulo_destaques)}</h2>
@@ -373,19 +407,19 @@ export async function paginaInicial(request, env) {
         titulo: a.nome,
         descricao: `${a.slogan}${a.cidade ? ` em ${a.cidade}` : ""}. Veja o catálogo e peça pelo WhatsApp.`,
         conteudo: `
-        <section class="apresenta">
-            <div class="caixa apresenta__grade">
-                <div class="apresenta__texto">
-                    <p class="apresenta__ola">${a.cidade ? `${esc(a.cidade)} · ` : ""}atendimento pelo WhatsApp</p>
+        <section class="topo-loja">
+            <div class="caixa">
+                <div class="vitrine">
+                    ${a.foto && a.foto_topo !== "sem" ? `<img class="vitrine__foto${a.foto_topo === "quadrada" ? " vitrine__foto--quadrada" : ""}" src="${esc(a.foto)}" alt="Foto de ${esc(a.nome)}" width="84" height="84">` : ""}
+                    <p class="vitrine__local">${a.cidade ? `${esc(a.cidade)} e região` : "Atendimento pelo WhatsApp"}</p>
                     <h1>${esc(a.slogan)}</h1>
-                    <p class="apresenta__lead">${esc(a.apresentacao)}</p>
-                    ${marcasDe(a).length ? `<p class="apresenta__marcas"><span>Revendedora</span> ${esc(listaTexto(marcasDe(a)))}</p>` : ""}
-                    <div class="apresenta__acoes">
-                        <a class="botao" href="#catalogo">${esc(a.texto_ver_catalogo)}</a>
-                        ${zap ? `<a class="botao botao--zap" href="${esc(linkZap(a, `Oi ${primeiroNome(a)}! Vim pelo site e queria uma ajuda.`))}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>${esc(a.texto_falar)}</span></a>` : ""}
+                    <p class="vitrine__frase">${esc(a.texto_topo)}</p>
+                    <div class="vitrine__acoes">
+                        <a class="botao botao--claro" href="#catalogo">${esc(a.texto_ver_catalogo)}</a>
+                        ${zap ? `<a class="botao botao--transparente" href="${esc(linkZap(a, `Oi ${primeiroNome(a)}! Vim pelo site e queria uma ajuda.`))}" target="_blank" rel="noopener">${ICONES.whatsapp}<span>${esc(a.texto_falar)}</span></a>` : ""}
                     </div>
                 </div>
-                ${a.foto_topo === "sem" ? "" : `<div class="apresenta__foto">${foto}</div>`}
+                ${marcasDe(a).length ? `<ul class="marcas" aria-label="Marcas que eu revendo">${marcasDe(a).map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : ""}
             </div>
         </section>
 
